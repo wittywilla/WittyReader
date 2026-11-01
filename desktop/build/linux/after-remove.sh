@@ -34,10 +34,11 @@ fi
 
 case "$1" in
   remove|0)
-    echo "WittyReader has been removed from this computer."
-    echo "A package can't reach anyone's home folder, so each person's library, notes and settings are"
-    echo "still there. Removing them deletes the copies of the books in the library and all the notes,"
-    echo "for good: export anything you want to keep first. To remove your own, run:"
+    echo "WittyReader has been removed."
+    echo "A package can't reach home folders, so your library,"
+    echo "notes and settings are still there. Removing them"
+    echo "deletes your library's books and your notes for good."
+    echo "To remove your own, run:"
     echo "  rm -rf ~/.config/WittyReader"
     ;;
 esac

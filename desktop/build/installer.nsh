@@ -99,35 +99,33 @@ Function un.wittyRemoveListed
     FileClose $R7
 FunctionEnd
 
-# The standard file-type removal leaves an empty ".epub" key behind if it made one. This takes it
-# away too, but never a key that says or holds anything from another program.
-Function un.wittyForgetExtension
+# Takes away what the setup added for one file type ($0, like ".epub", and $1, like "WittyReader.epub"),
+# and the keys themselves only if nothing else of anyone else's is left in them.
+Function un.wittyForgetType
+  Exch $1
+  Exch
   Exch $0
-  Push $1
-  ReadRegStr $1 SHELL_CONTEXT "Software\Classes\$0" ""
-  ${if} $1 == ""
-    EnumRegValue $1 SHELL_CONTEXT "Software\Classes\$0" 0
-    ${if} $1 == ""
-      EnumRegValue $1 SHELL_CONTEXT "Software\Classes\$0" 1
-      ${if} $1 == ""
-        DeleteRegKey /ifempty SHELL_CONTEXT "Software\Classes\$0"
-      ${endIf}
+  Push $2
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\$0\OpenWithProgids" "$1"
+  EnumRegValue $2 SHELL_CONTEXT "Software\Classes\$0\OpenWithProgids" 0
+  ${if} $2 == ""
+    DeleteRegKey /ifempty SHELL_CONTEXT "Software\Classes\$0\OpenWithProgids"
+  ${endIf}
+  DeleteRegKey SHELL_CONTEXT "Software\Classes\$1"
+  ReadRegStr $2 SHELL_CONTEXT "Software\Classes\$0" ""
+  ${if} $2 == $1
+    DeleteRegValue SHELL_CONTEXT "Software\Classes\$0" ""
+    StrCpy $2 ""
+  ${endIf}
+  ${if} $2 == ""
+    EnumRegValue $2 SHELL_CONTEXT "Software\Classes\$0" 0
+    ${if} $2 == ""
+      DeleteRegKey /ifempty SHELL_CONTEXT "Software\Classes\$0"
     ${endIf}
   ${endIf}
-  Pop $1
+  Pop $2
   Pop $0
-FunctionEnd
-
-# After everything else, because the standard removal of the file types is what leaves those keys.
-Function un.onUninstSuccess
-  ${ifNot} ${isUpdated}
-    Push ".epub"
-    Call un.wittyForgetExtension
-    Push ".pdf"
-    Call un.wittyForgetExtension
-    Push ".cbz"
-    Call un.wittyForgetExtension
-  ${endIf}
+  Pop $1
 FunctionEnd
 
 !endif
@@ -145,14 +143,48 @@ FunctionEnd
   ${endIf}
 !macroend
 
+# A file type another program owns stays with it: this only joins its Open with list, and becomes the
+# one that opens it only if nothing else does. The standard handling takes the type over for good.
+!macro wittyRegisterType EXT CLASS DESCRIPTION
+  WriteRegNone SHELL_CONTEXT "Software\Classes\.${EXT}\OpenWithProgids" "${CLASS}"
+  ReadRegStr $R0 HKCU "Software\Classes\.${EXT}" ""
+  ${if} $R0 == ""
+    ReadRegStr $R0 HKLM "Software\Classes\.${EXT}" ""
+  ${endIf}
+  ${if} $R0 == ""
+  ${orIf} $R0 == "${CLASS}"
+    WriteRegStr SHELL_CONTEXT "Software\Classes\.${EXT}" "" "${CLASS}"
+  ${endIf}
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${CLASS}" "" "${DESCRIPTION}"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${CLASS}\DefaultIcon" "" "$appExe,0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${CLASS}\shell" "" "open"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${CLASS}\shell\open" "" "Open with ${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${CLASS}\shell\open\command" "" '"$appExe" "%1"'
+!macroend
+
 !macro customInstall
   !insertmacro wittyRemoveStoredSetup
+  !insertmacro wittyRegisterType "epub" "WittyReader.epub" "EPUB book"
+  !insertmacro wittyRegisterType "pdf" "WittyReader.pdf" "PDF document"
+  !insertmacro wittyRegisterType "cbz" "WittyReader.cbz" "Comic book"
+  System::Call 'shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)'
 !macroend
 
 # A section of its own would make the uninstaller show a page of components, so this is called from
 # the end of removing files, once nothing can stop the uninstall.
 !macro wittyRemoveDataIfAsked
   ${ifNot} ${isUpdated}
+    Push ".epub"
+    Push "WittyReader.epub"
+    Call un.wittyForgetType
+    Push ".pdf"
+    Push "WittyReader.pdf"
+    Call un.wittyForgetType
+    Push ".cbz"
+    Push "WittyReader.cbz"
+    Call un.wittyForgetType
+    System::Call 'shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)'
+
     # The app doesn't register these today. Removing them here means it never leaves one behind.
     DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCT_NAME}"
     DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "electron.app.${PRODUCT_NAME}"
@@ -164,7 +196,7 @@ FunctionEnd
     ${ifNot} ${Errors}
       StrCpy $R9 "1"
     ${else}
-      MessageBox MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2 \
+      MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 \
         "${PRODUCT_NAME} has been removed.$\r$\n$\r$\nDo you also want to delete your library, notes and settings for this Windows account?$\r$\n$\r$\nChoose Yes and the copies of your books in the library, and all your highlights, notes and reading positions, are deleted for good. Export anything you want to keep first.$\r$\nChoose No to keep them, in case you install ${PRODUCT_NAME} again.$\r$\n$\r$\nThe original book files you added from elsewhere on this computer are never touched." \
         /SD IDNO IDNO +2
       StrCpy $R9 "1"

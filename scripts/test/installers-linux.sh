@@ -65,7 +65,7 @@ else
   purge_pkg() { :; }
   is_installed() { rpm -q $APP >/dev/null 2>&1; }
   version() { rpm -q --qf '%{VERSION}' $APP; }
-  test_tools="xorg-x11-server-Xvfb xorg-x11-xauth procps-ng shadow-utils util-linux findutils"
+  test_tools="xorg-x11-server-Xvfb xorg-x11-xauth procps-ng shadow-utils util-linux findutils diffutils"
 fi
 
 check_outside() { # nothing from the app's data folder or its network log says it reached anything else
@@ -153,7 +153,7 @@ find /home/tester/.config/WittyReader -maxdepth 2 | sort | sed -n 1,30p
 say "the documented command removes what's in the home folder"
 su tester -c 'rm -rf ~/.config/WittyReader'
 # What's left may only be what a new account starts with, and what the system's shared libraries keep for every program.
-left=$(cd /home/tester && find . -mindepth 1 | grep -vE '^\./\.(bash|profile|config$|mozilla)|^\./\.cache($|/fontconfig|/mesa_shader_cache)|^\./\.local($|/share$|/share/pki)|^\./\.pki|^\./books')
+left=$(cd /home/tester && find . -mindepth 1 | grep -vE '^\./\.(bash|profile|config$|mozilla)|^\./\.cache($|/dconf|/fontconfig|/mesa_shader_cache)|^\./\.local($|/share$|/share/pki)|^\./\.config/pulse|^\./\.pki|^\./books')
 [ -z "$left" ] || { echo "$left"; fail "the documented command left something of the app's"; }
 (cd /home/tester && find . -maxdepth 3 -mindepth 1 | grep -v mesa_shader_cache_db/ | sort)
 
@@ -161,7 +161,7 @@ say "clearing it away, to leave a system with only the libraries it needs"
 remove_pkg; purge_pkg
 is_installed && fail "still installed"
 [ ! -e "/usr/bin/$APP" ] || fail "the command stayed"
-rm -rf /home/tester/.cache /home/tester/.pki /home/tester/.local
+rm -rf /home/tester/.cache /home/tester/.pki /home/tester/.local /home/tester/.config/pulse
 
 say "snapshot before"
 eval "$SNAPSHOT" > /tmp/before.txt
@@ -214,7 +214,7 @@ rmdir "$ROOT" 2>/dev/null
 
 say "the documented command, then the snapshot after"
 su tester -c 'rm -rf ~/.config/WittyReader'
-rm -rf /home/tester/.cache /home/tester/.pki /home/tester/.local
+rm -rf /home/tester/.cache /home/tester/.pki /home/tester/.local /home/tester/.config/pulse
 eval "$SNAPSHOT" > /tmp/after.txt
 if ! diff -u /tmp/before.txt /tmp/after.txt > /tmp/diff.txt; then
   cat /tmp/diff.txt

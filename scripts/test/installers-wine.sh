@@ -100,8 +100,9 @@ reg_has 'DisplayName.*'$APP || fail "no entry in Add or Remove Programs"
 say "the file types it registers"
 reg_query() { wine reg query "$@" 2>/dev/null | tr -d '\r'; }
 for ext in epub pdf cbz; do
-  reg_query "HKCU\\Software\\Classes\\.$ext" /ve | grep -aq "WittyReader.$ext" || fail "no .$ext"
+  reg_query "HKCU\\Software\\Classes\\.$ext\\OpenWithProgids" | grep -aq "WittyReader.$ext" || fail ".$ext has no Open with entry"
 done
+reg_query 'HKCU\Software\Classes\.epub' /ve | grep -aq 'WittyReader.epub' || fail "nothing else has .epub, and it didn't take it"
 reg_query 'HKCU\Software\Classes\WittyReader.epub\shell\open\command' /ve
 reg_query 'HKCU\Software\Classes\WittyReader.epub\shell\open\command' /ve | grep -aq 'WittyReader.exe" "%1"' || fail "the command doesn't open the file"
 
@@ -151,14 +152,15 @@ diff -u /tmp/before.txt /tmp/after.txt | grep -v 'Documents' > /tmp/d.txt
 if grep -Eq '^[+-][^+-]' /tmp/d.txt; then cat /tmp/d.txt; fail "something was left behind"; fi
 echo "NOTHING LEFT: $(wc -l < /tmp/after.txt) paths and registry keys, before and after the same"
 
-say "a file type another program had before is given back"
+say "a file type another program has stays with it"
 wine reg add 'HKCU\Software\Classes\.cbz' /ve /d 'SomeoneElse.Comic' /f >/dev/null
 wineserver -w
 run_setup "$setup" /S || fail "install exit $code"
-reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'WittyReader.cbz' || fail "not registered for .cbz"
+reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'SomeoneElse.Comic' || fail "it took .cbz from another program"
+reg_query 'HKCU\Software\Classes\.cbz\OpenWithProgids' | grep -aq 'WittyReader.cbz' || fail "it isn't in .cbz's Open with"
 uninstall "$MINE" /S /RemoveData
-reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'SomeoneElse.Comic' || fail "didn't give .cbz back"
-echo ".cbz belongs to SomeoneElse.Comic again"
+reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'SomeoneElse.Comic' || fail "uninstalling took .cbz from another program"
+echo ".cbz stayed with SomeoneElse.Comic throughout"
 wine reg delete 'HKCU\Software\Classes\.cbz' /f >/dev/null
 wineserver -w
 

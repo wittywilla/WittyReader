@@ -62,32 +62,6 @@
       "onlyLoadAppFromAsar": true,
       "grantFileProtocolExtraPrivileges": false
     },
-    "fileAssociations": [
-      {
-        "ext": "epub",
-        "name": "WittyReader.epub",
-        "description": "EPUB book",
-        "mimeType": "application/epub+zip",
-        "role": "Viewer",
-        "rank": "Default"
-      },
-      {
-        "ext": "pdf",
-        "name": "WittyReader.pdf",
-        "description": "PDF document",
-        "mimeType": "application/pdf",
-        "role": "Viewer",
-        "rank": "Alternate"
-      },
-      {
-        "ext": "cbz",
-        "name": "WittyReader.cbz",
-        "description": "Comic book",
-        "mimeType": "application/vnd.comicbook+zip",
-        "role": "Viewer",
-        "rank": "Default"
-      }
-    ],
     "win": {
       "target": [
         {
@@ -138,6 +112,32 @@
           "from": "build/mac/Uninstall WittyReader.command",
           "to": "Uninstall WittyReader.command"
         }
+      ],
+      "fileAssociations": [
+        {
+          "ext": "epub",
+          "name": "WittyReader.epub",
+          "description": "EPUB book",
+          "mimeType": "application/epub+zip",
+          "role": "Viewer",
+          "rank": "Default"
+        },
+        {
+          "ext": "pdf",
+          "name": "WittyReader.pdf",
+          "description": "PDF document",
+          "mimeType": "application/pdf",
+          "role": "Viewer",
+          "rank": "Alternate"
+        },
+        {
+          "ext": "cbz",
+          "name": "WittyReader.cbz",
+          "description": "Comic book",
+          "mimeType": "application/vnd.comicbook+zip",
+          "role": "Viewer",
+          "rank": "Default"
+        }
       ]
     },
     "dmg": {
@@ -149,7 +149,9 @@
       "contents": [
         {
           "x": 140,
-          "y": 150
+          "y": 150,
+          "type": "file",
+          "name": "WittyReader.app"
         },
         {
           "x": 400,
@@ -161,7 +163,8 @@
           "x": 270,
           "y": 300,
           "type": "file",
-          "path": "build/mac/Uninstall WittyReader.command"
+          "path": "build/mac/Uninstall WittyReader.command",
+          "name": "Uninstall WittyReader.command"
         }
       ]
     },
@@ -196,7 +199,33 @@
           "Comment": "Read and annotate books, PDFs and comics on your own device"
         }
       },
-      "syncDesktopName": true
+      "syncDesktopName": true,
+      "fileAssociations": [
+        {
+          "ext": "epub",
+          "name": "WittyReader.epub",
+          "description": "EPUB book",
+          "mimeType": "application/epub+zip",
+          "role": "Viewer",
+          "rank": "Default"
+        },
+        {
+          "ext": "pdf",
+          "name": "WittyReader.pdf",
+          "description": "PDF document",
+          "mimeType": "application/pdf",
+          "role": "Viewer",
+          "rank": "Alternate"
+        },
+        {
+          "ext": "cbz",
+          "name": "WittyReader.cbz",
+          "description": "Comic book",
+          "mimeType": "application/vnd.comicbook+zip",
+          "role": "Viewer",
+          "rank": "Default"
+        }
+      ]
     },
     "appImage": {
       "artifactName": "wittyreader-${version}-linux-amd64.${ext}"

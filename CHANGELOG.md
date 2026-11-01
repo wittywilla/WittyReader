@@ -9,6 +9,7 @@ What changed in WittyReader, newest first. What changed before it had a reposito
   Linux. It's the same app in its own window, served through an address of its own, with the same security policy. The only thing
   it can reach outside itself is the dictionary, and only once you turn that on. The zip stays for people who host it themselves.
 - Once installed, `.epub`, `.pdf` and `.cbz` files open in it from your system, and go into the library the same way as added books.
+  It joins the Open with list and never takes a file type from another program.
 - Removing it asks whether to delete your library, notes and settings too, and says plainly that this can't be undone. Silently on
   Windows it keeps them, unless given `/RemoveData`. macOS has an uninstaller that lists everything and asks first, and Linux
   packages say what's left in your home folder and how to remove it.

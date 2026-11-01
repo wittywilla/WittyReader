@@ -36,8 +36,9 @@ Updating never touches it. Removing the program only touches it if you say so.
 ## Opening files
 
 The installers register `.epub`, `.pdf` and `.cbz` with your system, so **Open with > WittyReader** works from your file manager.
-A file opened this way goes into the library the way an added book does, and opens straight away. PDFs stay with your usual PDF
-reader wherever your system has one chosen: to change that, use your system's setting for default apps.
+A file opened this way goes into the library the way an added book does, and opens straight away. It never takes a file type from
+another program: if something else already opens PDFs, it still does, and WittyReader is one more choice in the list. To change that,
+use your system's setting for default apps.
 
 ## Windows
 
@@ -49,8 +50,7 @@ desktop shortcut and a Start menu entry. Running a newer setup upgrades in place
 then asks whether to delete your library, notes and settings too. No is the safe answer, and the default. If you installed it for
 everyone, the question covers your own account's data only: other accounts' folders are theirs to remove.
 
-It removes exactly the files it installed, its shortcuts and its file types, and gives a file type back to whichever program
-had it before. If you put something of your own in its folder, that and the folder stay.
+It removes exactly the files it installed, its shortcuts and its file types. A file type another program has stays with it. If you put something of your own in its folder, that and the folder stay.
 
 **Without any windows, for scripts:**
 
@@ -119,8 +119,8 @@ well, which can't be undone:
 rm -rf ~/.config/WittyReader
 ```
 
-The system's own libraries, which many programs share, may also have made `~/.cache/fontconfig`, `~/.cache/mesa_shader_cache*`
-and `~/.local/share/pki/nssdb` when the app ran. They aren't the app's, so nothing here removes them.
+The system's own libraries, which many programs share, may also have made `~/.cache/dconf`, `~/.cache/fontconfig`, `~/.cache/mesa_shader_cache*`
+`~/.config/pulse` and `~/.local/share/pki/nssdb` when the app ran. They aren't the app's, so nothing here removes them.
 
 **AppImage:** make it executable and run it. To remove it, delete the file. It doesn't register file types by itself. Your library
 is in the same folder as above, and goes the same way.
