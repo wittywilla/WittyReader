@@ -5,6 +5,7 @@ What changed in WittyReader, newest first. What changed before it had a reposito
 
 ## Unreleased
 
+- A copy-protected EPUB is refused when you add it, with a plain message, instead of opening to unreadable chapters. An EPUB whose fonts are merely scrambled opens as usual.
 - WittyReader now has real installers: a setup wizard for Windows, a disk image for macOS, and `.deb`, `.rpm` and AppImage for
   Linux. It's the same app in its own window, served through an address of its own, with the same security policy. The only thing
   it can reach outside itself is the dictionary, and only once you turn that on. The zip stays for people who host it themselves.

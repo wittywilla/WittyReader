@@ -29,8 +29,29 @@ const cacheKey = (url: string) => 'https://wittyreader-book.invalid' + new URL(u
 
 export type Epub = { files: Record<string, Uint8Array>; title: string; author?: string; year?: number | null; spine: string[]; toc: EpubInfo['toc']; cover?: string }
 
+// The scrambling publishers put on embedded fonts isn't protection of the book: its text reads
+// as usual, in the reader's own font. Anything else is copy protection, refused up front.
+const FONT_SCRAMBLES = new Set(['http://www.idpf.org/2008/embedding', 'http://ns.adobe.com/pdf/enc#RC'])
+const FONT_FILE = /\.(otf|ttf|ttc|woff2?|eot|pfb|pfa|dfont|cff|odttf)$/i
+const BOOK_FILE = /\.(xhtml|xht|html?|opf|ncx|xml)$/i
+export const PROTECTED_MESSAGE = 'This book has copy protection, so it can’t be opened here.'
+
+// protectedEpub says whether encryption.xml locks more than the fonts. Nothing here removes it.
+export function protectedEpub(listing: string): boolean {
+  const doc = xml(listing)
+  if (doc.querySelector('parsererror')) return false
+  return byTag(doc, 'EncryptedData').some((d) => {
+    const method = byTag(d, 'EncryptionMethod')[0]?.getAttribute('Algorithm')?.trim() || ''
+    let target = byTag(d, 'CipherReference')[0]?.getAttribute('URI') || ''
+    try { target = decodeURIComponent(target) } catch { /* use it as it is */ }
+    return FONT_SCRAMBLES.has(method) ? BOOK_FILE.test(target) : !FONT_FILE.test(target)
+  })
+}
+
 export function readEpub(bytes: Uint8Array): Epub {
   const files = unzipSync(bytes)
+  const listing = Object.keys(files).find((n) => n.toLowerCase() === 'meta-inf/encryption.xml')
+  if (listing && protectedEpub(strFromU8(files[listing]))) throw new Error(PROTECTED_MESSAGE)
   const text = (p: string) => (files[p] ? strFromU8(files[p]) : '')
   const opfPath = xml(text('META-INF/container.xml')).querySelector('rootfile')?.getAttribute('full-path')
   if (!opfPath || !files[opfPath]) throw new Error('This is not an EPUB book (no package file).')
