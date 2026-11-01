@@ -37,5 +37,8 @@ and forms in a PDF. WittyReader keeps them in check:
   - the only outside address it may contact is the dictionary.
 - The offline service worker only answers for WittyReader's own files and the open book. It
   never contacts other sites.
+- The installed desktop app runs the same pages in a sandbox, with no access to the rest of your computer. It refuses
+  every request to leave the app except the dictionary, once you've turned that on, and refuses camera, microphone,
+  location and notifications outright. Links you click open in your own browser.
 - Installing WittyReader as an app gives it no extra access to your files. It only sees the files
   you open with it.

@@ -10,7 +10,9 @@ This means:
 - your notes are private to this device;
 - they're lost if the browser's data for the site is cleared, the browser is uninstalled, or
   the device is reset;
-- another browser on the same computer has its own separate library.
+- another browser on the same computer has its own separate library, and so does the installed app;
+- with the installed app, they're lost if you say yes when removing it asks about them: see
+  [Installing and removing](Installing-and-removing).
 
 **Export the notes you care about**, especially before clearing browser data or changing devices.
 

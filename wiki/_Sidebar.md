@@ -1,6 +1,7 @@
 **[WittyReader](Home)**
 
 - [Getting started](Getting-started)
+- [Installing and removing](Installing-and-removing)
 - [Your library](Your-library)
 - [Reading](Reading)
 - [Notes and backups](Notes-and-backups)

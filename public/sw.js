@@ -17,6 +17,8 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return
   const scope = new URL(self.registration.scope)
+  // A file opened from the system in the desktop app: read once, and not worth keeping a copy of.
+  if (url.pathname.startsWith(scope.pathname + '__opened__/')) return
   if (url.pathname.startsWith(scope.pathname + 'book/')) {
     e.respondWith(caches.open(BOOK)
       .then((c) => c.match(url.origin + url.pathname))

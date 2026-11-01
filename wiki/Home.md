@@ -12,6 +12,7 @@ your own device. It's built for real reading and study:
 ## Guide
 
 - [Getting started](Getting-started): open WittyReader, install it, add your first book.
+- [Installing and removing](Installing-and-removing): the installers, where everything is kept, removing all of it.
 - [Your library](Your-library): covers, progress, supported files, removing books.
 - [Reading](Reading): how books, PDFs and comics work, with links to each reader's full guide.
 - [Notes and backups](Notes-and-backups): where notes live, export, import, moving devices.

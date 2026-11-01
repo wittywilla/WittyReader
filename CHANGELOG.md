@@ -5,4 +5,13 @@ What changed in WittyReader, newest first. What changed before it had a reposito
 
 ## Unreleased
 
+- WittyReader now has real installers: a setup wizard for Windows, a disk image for macOS, and `.deb`, `.rpm` and AppImage for
+  Linux. It's the same app in its own window, served through an address of its own, with the same security policy. The only thing
+  it can reach outside itself is the dictionary, and only once you turn that on. The zip stays for people who host it themselves.
+- Once installed, `.epub`, `.pdf` and `.cbz` files open in it from your system, and go into the library the same way as added books.
+- Removing it asks whether to delete your library, notes and settings too, and says plainly that this can't be undone. Silently on
+  Windows it keeps them, unless given `/RemoveData`. macOS has an uninstaller that lists everything and asks first, and Linux
+  packages say what's left in your home folder and how to remove it.
+- A file opened from the system while another book is open now closes that book properly first.
+- A fresh checkout builds again: two of the reader plugins were locked to versions older than the others needed.
 - WittyReader is now a project of its own, developed and released from this repository.

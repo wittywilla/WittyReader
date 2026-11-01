@@ -1,0 +1,254 @@
+{
+  "name": "wittyreader-desktop",
+  "productName": "WittyReader",
+  "desktopName": "wittyreader.desktop",
+  "version": "0.1.0",
+  "description": "Read and annotate books, PDFs and comics on your own device.",
+  "author": "WittyWilla",
+  "homepage": "https://github.com/wittywilla/WittyReader",
+  "license": "Apache-2.0",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "web": "npm --prefix .. run build",
+    "start": "npm run web && electron .",
+    "test": "node --test test/desktop.test.js",
+    "package:win": "npm run web && electron-builder --win",
+    "package:mac": "npm run web && electron-builder --mac",
+    "package:linux": "npm run web && electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "45.2.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.wittywilla.wittyreader",
+    "productName": "WittyReader",
+    "copyright": "Copyright 2026 WittyWilla and contributors",
+    "directories": {
+      "output": "out",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "serve.js",
+      "opened.js",
+      {
+        "from": "../dist",
+        "to": "app",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "../LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "../NOTICE",
+        "to": "NOTICE"
+      }
+    ],
+    "publish": null,
+    "npmRebuild": false,
+    "afterPack": "build/after-pack.js",
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "fileAssociations": [
+      {
+        "ext": "epub",
+        "name": "WittyReader.epub",
+        "description": "EPUB book",
+        "mimeType": "application/epub+zip",
+        "role": "Viewer",
+        "rank": "Default"
+      },
+      {
+        "ext": "pdf",
+        "name": "WittyReader.pdf",
+        "description": "PDF document",
+        "mimeType": "application/pdf",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "ext": "cbz",
+        "name": "WittyReader.cbz",
+        "description": "Comic book",
+        "mimeType": "application/vnd.comicbook+zip",
+        "role": "Viewer",
+        "rank": "Default"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "executableName": "WittyReader"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "WittyReader",
+      "uninstallDisplayName": "WittyReader",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "differentialPackage": false,
+      "artifactName": "wittyreader-${version}-windows-amd64-setup.${ext}",
+      "include": "build/installer.nsh"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.books",
+      "artifactName": "wittyreader-${version}-macos-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "build/mac/Uninstall WittyReader.command",
+          "to": "Uninstall WittyReader.command"
+        }
+      ]
+    },
+    "dmg": {
+      "title": "WittyReader ${version}",
+      "window": {
+        "width": 540,
+        "height": 400
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 150
+        },
+        {
+          "x": 400,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 270,
+          "y": 300,
+          "type": "file",
+          "path": "build/mac/Uninstall WittyReader.command"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Office",
+      "maintainer": "WittyWilla",
+      "executableName": "wittyreader",
+      "synopsis": "Read and annotate books, PDFs and comics",
+      "desktop": {
+        "entry": {
+          "Name": "WittyReader",
+          "Comment": "Read and annotate books, PDFs and comics on your own device"
+        }
+      },
+      "syncDesktopName": true
+    },
+    "appImage": {
+      "artifactName": "wittyreader-${version}-linux-amd64.${ext}"
+    },
+    "deb": {
+      "artifactName": "wittyreader-${version}-linux-amd64.${ext}",
+      "packageName": "wittyreader",
+      "afterRemove": "build/linux/after-remove.sh",
+      "depends": [
+        "libgtk-3-0t64 | libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libnspr4",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0t64 | libatspi2.0-0",
+        "libatk1.0-0t64 | libatk1.0-0",
+        "libatk-bridge2.0-0t64 | libatk-bridge2.0-0",
+        "libcups2t64 | libcups2",
+        "libdrm2",
+        "libgbm1",
+        "libasound2t64 | libasound2",
+        "libxkbcommon0",
+        "libuuid1",
+        "libsecret-1-0"
+      ],
+      "recommends": []
+    },
+    "rpm": {
+      "artifactName": "wittyreader-${version}-linux-amd64.${ext}",
+      "packageName": "wittyreader",
+      "afterRemove": "build/linux/after-remove.sh",
+      "depends": [
+        "gtk3",
+        "libnotify",
+        "nss",
+        "nspr",
+        "libXScrnSaver",
+        "libXtst",
+        "xdg-utils",
+        "at-spi2-core",
+        "at-spi2-atk",
+        "atk",
+        "cups-libs",
+        "libdrm",
+        "mesa-libgbm",
+        "alsa-lib",
+        "libxkbcommon",
+        "libuuid",
+        "libsecret"
+      ]
+    }
+  }
+}

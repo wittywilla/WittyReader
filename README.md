@@ -17,7 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="#run-it">Run it</a> ·
+  <a href="#install-it">Install it</a> ·
+  <a href="#run-it-from-source">Run it from source</a> ·
   <a href="wiki/Getting-started.md">Getting started</a> ·
   <a href="wiki/Privacy-and-security.md">Privacy</a> ·
   <a href="wiki/Home.md"><b>Full guide</b></a>
@@ -49,7 +50,24 @@
 | 📦 | **Notes go with you** | export a book's notes to a file and import them on another device, or save a readable Markdown summary |
 | ✈️ | **Offline** | works offline after the first visit, and installs as an app |
 
-## Run it
+## Install it
+
+[The releases page](https://github.com/wittywilla/WittyReader/releases) has an installer for each system:
+
+| You have | Download |
+|---|---|
+| Windows 10 or later | `wittyreader-<version>-windows-amd64-setup.exe` |
+| A Mac | `wittyreader-<version>-macos-arm64.dmg` for Apple silicon, `-macos-x64.dmg` for Intel |
+| Debian, Ubuntu and relatives | `wittyreader-<version>-linux-amd64.deb` |
+| Fedora and relatives | `wittyreader-<version>-linux-amd64.rpm` |
+| Any other Linux | `wittyreader-<version>-linux-amd64.AppImage` |
+| Your own web server | `wittyreader-<version>.zip`: see [Hosting and building](wiki/Hosting-and-building.md) |
+
+Installed, it opens `.epub`, `.pdf` and `.cbz` files from your system. Removing it asks whether to delete your library and
+notes as well, which can't be undone. [Installing and removing](wiki/Installing-and-removing.md) has the steps for each system,
+and every folder involved.
+
+## Run it from source
 
 You need [Node.js](https://nodejs.org) 20 or newer.
 
@@ -66,6 +84,7 @@ Browsers only allow the offline service worker, which also shows EPUBs, on secur
 | Guide | |
 |---|---|
 | [Getting started](wiki/Getting-started.md) | adding books and finding your way |
+| [Installing and removing](wiki/Installing-and-removing.md) | the installers, where things are kept, removing everything |
 | [Your library](wiki/Your-library.md) · [Reading](wiki/Reading.md) | the shelf, and every reading tool |
 | [Notes and backups](wiki/Notes-and-backups.md) | exporting and importing notes |
 | [Privacy and security](wiki/Privacy-and-security.md) · [Troubleshooting](wiki/Troubleshooting.md) | |
@@ -96,14 +115,14 @@ Local law applies to how you use it. This isn't legal advice.
 <!-- module-kit -->
 ## Releasing
 
-A version tag builds the web app and attaches it to a release. It isn't delivered through a server.
+A version tag builds the web app and the desktop installers, and attaches them to a release. It isn't delivered through a server.
 
 To release:
 
-1. Raise `version` in `package.json` and commit it.
+1. Raise `version` in `package.json` and in `desktop/package.json`, and commit it.
 2. Tag that commit and push the tag: `git tag vX.Y.Z`, then `git push origin vX.Y.Z`. A tag with a
    suffix, such as `v1.2.0-beta`, is published as a prerelease.
-3. Watch the *Actions* tab. There is nothing to sign.
+3. Watch the *Actions* tab. Nothing is signed yet, so Windows and macOS warn about the installers: see [Installing and removing](wiki/Installing-and-removing.md).
 
 Licensed under Apache-2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 <!-- /module-kit -->

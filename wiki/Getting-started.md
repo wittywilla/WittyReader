@@ -2,16 +2,17 @@
 
 ## 1. Open WittyReader
 
-WittyReader runs in a web browser:
+[Install it](Installing-and-removing) for your system, or use it in a web browser:
 
 - **Your own copy:** open its address (see [Hosting and building](Hosting-and-building)).
 - **During development:** run `npm run dev` and open `http://localhost:5180`.
 
 Use a current browser: Edge, Chrome, Firefox or Safari.
 
-## 2. Install it (optional)
+## 2. Install it from the browser (optional)
 
-Installing gives WittyReader its own window and icon, and lets your system open books with it:
+If you're using it in a browser, installing it from there gives it its own window and icon, and lets your system open
+books with it. It keeps the browser's copy of your library. [The installers](Installing-and-removing) don't need this step:
 
 - **Edge or Chrome:** the install icon in the address bar, or **⋯ → Apps → Install WittyReader**.
 - **Safari on iPhone or iPad:** **Share → Add to Home Screen**.

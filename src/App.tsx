@@ -77,8 +77,23 @@ export default function App() {
     window.addEventListener('dragover', over)
     window.addEventListener('dragleave', leave)
     window.addEventListener('drop', drop)
+    const fromSystem = (files: File[]) => { closeBook(); return add(files) }
     const lq = (window as any).launchQueue
-    lq?.setConsumer?.(async (p: { files: FileSystemFileHandle[] }) => add(await Promise.all(p.files.map((h) => h.getFile()))))
+    lq?.setConsumer?.(async (p: { files: FileSystemFileHandle[] }) => fromSystem(await Promise.all(p.files.map((h) => h.getFile()))))
+    // The desktop app gives a name and an address that works once, which saves holding the file twice.
+    const desktop = (window as any).wittyReaderDesktop
+    desktop?.setBookConsumer?.(async (opened: { name: string; url?: string; error?: string }[]) => {
+      const files: File[] = []
+      for (const o of opened) {
+        try {
+          if (o.error || !o.url) throw new Error(o.error)
+          const res = await fetch(o.url)
+          if (!res.ok) throw new Error()
+          files.push(new File([await res.blob()], o.name))
+        } catch (e: any) { toast(e.message || `${o.name} could not be opened.`) }
+      }
+      await fromSystem(files)
+    })
     return () => { window.removeEventListener('dragover', over); window.removeEventListener('dragleave', leave); window.removeEventListener('drop', drop) }
   })
   useEffect(() => {

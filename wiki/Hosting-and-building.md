@@ -16,6 +16,19 @@ npm run build
 The finished app is in `dist/`. `npm run dev` starts a development copy at
 `http://localhost:5180`.
 
+## The installers
+
+In `desktop/`, which wraps the same built files in a window of their own:
+
+```bash
+npm ci --ignore-scripts
+npm run package:win      # or package:linux, package:mac
+```
+
+They go in `desktop/out/`. Windows needs building on Windows, and `.dmg` on a Mac. `.rpm` needs the `rpm` tool.
+`scripts/test/installers-linux.sh` and `scripts/test/installers-wine.sh` run them for real in throwaway containers, and compare the
+file system and registry from before and after. `scripts/test/mac-uninstaller.sh` checks the Mac uninstaller's logic.
+
 ## Host it
 
 Put the contents of `dist/` on any web server or static host (a NAS's web server, nginx, Caddy,
@@ -42,11 +55,7 @@ fallback. Libraries and notes are untouched by updates.
 
 ## Developing
 
-WittyReader is developed inside
-[WittyMediaServer](https://github.com/wittywilla/WittyMediaServer), in `apps/wittyreader`. There,
-it uses the reader plugins straight from `web/src/modules`, so a change to a plugin shows up in
-both apps at once. In this repository, the plugins come from their own repositories through
-`package.json`:
+The reader plugins come from their own repositories, through `package.json`:
 
 - [WittyInk](https://github.com/wittywilla/WittyInk)
 - [WittyEbook](https://github.com/wittywilla/WittyEbook)
@@ -60,3 +69,4 @@ both apps at once. In this repository, the plugins come from their own repositor
 | `src/epub.ts` | Unpacking EPUBs on the device: contents, cover, word counts, search. |
 | `src/store.ts` | The on-device database (IndexedDB): books, files and notes. |
 | `public/sw.js` | The service worker: shows unpacked EPUBs, keeps the app working offline. |
+| `desktop/` | The installed app: its window, its address, opening files from the system, and the installers. |
