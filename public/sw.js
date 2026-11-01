@@ -21,13 +21,15 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.startsWith(scope.pathname + '__opened__/')) return
   if (url.pathname.startsWith(scope.pathname + 'book/')) {
     e.respondWith(caches.open(BOOK)
-      .then((c) => c.match(url.origin + url.pathname))
+      // Under a made-up address, because Cache Storage only takes http and https: see src/epub.ts.
+      .then((c) => c.match('https://wittyreader-book.invalid' + url.pathname))
       .then((r) => r || new Response('Not in this book', { status: 404, headers: { 'Content-Type': 'text/plain' } })))
     return
   }
   // The app's own files: the network first, the copy from the last visit when offline.
   e.respondWith(fetch(req).then((res) => {
-    if (res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(APP).then((c) => c.put(req, copy)) }
+    // The desktop app's own files are always there, and Cache Storage wouldn't take their address.
+    if (res.ok && res.type === 'basic' && url.protocol.startsWith('http')) { const copy = res.clone(); caches.open(APP).then((c) => c.put(req, copy)) }
     return res
   }).catch(() => caches.match(req).then((r) => r || caches.match(scope.href)).then((r) => r || Response.error())))
 })

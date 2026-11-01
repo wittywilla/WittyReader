@@ -23,6 +23,10 @@ const byTag = (d: Document | Element, tag: string) => Array.from(d.getElementsBy
 // browser will when a chapter links to it; only ?, # and % need doing first.
 const fileUrl = (base: URL, path: string) => { const u = new URL(path.replace(/[?#%]/g, encodeURIComponent), base); return u.origin + u.pathname }
 
+// Cache Storage only takes http and https addresses, and the desktop app has an address of its own.
+// So a file is stored under this made-up one, which is only ever a name: public/sw.js does the same.
+const cacheKey = (url: string) => 'https://wittyreader-book.invalid' + new URL(url).pathname
+
 export type Epub = { files: Record<string, Uint8Array>; title: string; author?: string; year?: number | null; spine: string[]; toc: EpubInfo['toc']; cover?: string }
 
 export function readEpub(bytes: Uint8Array): Epub {
@@ -107,7 +111,7 @@ export async function serveEpub(key: string, book: Epub) {
     const type = typeOf(path)
     const headers: Record<string, string> = { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff' }
     headers['Content-Security-Policy'] = CSP // every file: a book's files are untrusted
-    return cache.put(fileUrl(base, path), new Response(bytes as BodyInit, { headers }))
+    return cache.put(cacheKey(fileUrl(base, path)), new Response(bytes as BodyInit, { headers }))
   }))
   const texts = book.spine.map((p) => chapterText(book.files[p]))
   const info: EpubInfo = { spine: book.spine, toc: book.toc, words: texts.map((t) => (t ? t.split(' ').length : 0)) }

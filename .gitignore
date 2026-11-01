@@ -8,3 +8,4 @@ go.work.sum
 .claude/
 .dev-modules
 desktop/out/
+desktop/out-upgrade/

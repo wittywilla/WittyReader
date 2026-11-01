@@ -13,8 +13,8 @@ const WEB_ROOT = app.isPackaged ? path.join(__dirname, 'app') : path.join(__dirn
 const DICTIONARY = 'https://api.dictionaryapi.dev/'
 // The most the app can hold in memory while adding a file.
 const MAX_BOOK_BYTES = 2 * 1024 * 1024 * 1024 - 1
-// navigator.clipboard.writeText, for Copy and citations. Nothing else is ever granted.
-const ALLOWED_PERMISSIONS = new Set(['clipboard-sanitized-write'])
+// Copy and citations, and keeping the library when the disk runs low. Nothing else is ever granted.
+const ALLOWED_PERMISSIONS = new Set(['clipboard-sanitized-write', 'persistent-storage'])
 const SIZE_FILE = () => path.join(app.getPath('userData'), 'window.json')
 
 let win = null
@@ -62,7 +62,11 @@ function openOutside(url) {
 }
 
 function isOurs(url) {
-  try { return new URL(url).origin === ORIGIN } catch { return false }
+  // Not by its origin: Node gives every address on a scheme it doesn't know the origin "null".
+  try {
+    const u = new URL(url)
+    return u.protocol === `${SCHEME}:` && u.host === HOST
+  } catch { return false }
 }
 
 function guard(contents) {
@@ -78,8 +82,11 @@ function guard(contents) {
 }
 
 function lockDown() {
+  // Otherwise the engine fetches a spelling dictionary from a third party, even with spelling off in the page.
+  session.defaultSession.setSpellCheckerEnabled(false)
+  if (process.platform !== 'darwin') session.defaultSession.setSpellCheckerLanguages([])
   const allowed = (permission, origin) => ALLOWED_PERMISSIONS.has(permission) && isOurs(origin)
-  session.defaultSession.setPermissionRequestHandler((_contents, permission, done, details) => done(allowed(permission, details.requestingUrl)))
+  session.defaultSession.setPermissionRequestHandler((contents, permission, done, details) => done(allowed(permission, details.requestingUrl || contents.getURL())))
   session.defaultSession.setPermissionCheckHandler((_contents, permission, origin) => allowed(permission, origin))
   // The app's own policy already says this. This is the same rule again, from outside the page.
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, done) => {
@@ -113,7 +120,6 @@ function createWindow() {
   win.on('close', saveSize)
   win.on('closed', () => { win = null })
   win.webContents.on('did-finish-load', () => { pageReady = true; sendBooks() })
-  win.webContents.on('did-start-loading', () => { pageReady = false })
   win.loadURL(`${ORIGIN}/`)
 }
 

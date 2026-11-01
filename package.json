@@ -1,7 +1,7 @@
 {
   "name": "wittyreader",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read and annotate books, PDFs and comics on your own device.",
   "license": "Apache-2.0",
   "author": "WittyWilla (https://github.com/wittywilla)",

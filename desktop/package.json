@@ -2,7 +2,7 @@
   "name": "wittyreader-desktop",
   "productName": "WittyReader",
   "desktopName": "wittyreader.desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read and annotate books, PDFs and comics on your own device.",
   "author": "WittyWilla",
   "homepage": "https://github.com/wittywilla/WittyReader",

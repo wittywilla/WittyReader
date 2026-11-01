@@ -18,3 +18,8 @@ Third-party components bundled in the built app:
 - pdf.js (pdfjs-dist), Copyright Mozilla Foundation - Apache License 2.0
 - React and React DOM, Copyright Meta Platforms, Inc. and affiliates - MIT
 - fflate, Copyright Arjun Barrett - MIT
+
+Third-party components in the installers only, not in the zip of the web app:
+- Electron, Copyright Electron contributors - MIT. It bundles Chromium and FFmpeg,
+  whose licences ship with every installed copy, in LICENSE.electron.txt and
+  LICENSES.chromium.html.

@@ -119,6 +119,9 @@ well, which can't be undone:
 rm -rf ~/.config/WittyReader
 ```
 
+The system's own libraries, which many programs share, may also have made `~/.cache/fontconfig`, `~/.cache/mesa_shader_cache*`
+and `~/.local/share/pki/nssdb` when the app ran. They aren't the app's, so nothing here removes them.
+
 **AppImage:** make it executable and run it. To remove it, delete the file. It doesn't register file types by itself. Your library
 is in the same folder as above, and goes the same way.
 

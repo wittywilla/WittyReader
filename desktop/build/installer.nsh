@@ -118,7 +118,70 @@ Function un.wittyForgetExtension
   Pop $0
 FunctionEnd
 
+# After everything else, because the standard removal of the file types is what leaves those keys.
+Function un.onUninstSuccess
+  ${ifNot} ${isUpdated}
+    Push ".epub"
+    Call un.wittyForgetExtension
+    Push ".pdf"
+    Call un.wittyForgetExtension
+    Push ".cbz"
+    Call un.wittyForgetExtension
+  ${endIf}
+FunctionEnd
+
 !endif
+
+# The standard setup leaves a copy of itself in the account's local folder, for an auto-updater this
+# app doesn't have. That's over 100 MB, in a place no uninstaller would know about.
+!macro wittyRemoveStoredSetup
+  ${if} $installMode == "all"
+    SetShellVarContext current
+  ${endIf}
+  Delete "$LOCALAPPDATA\${APP_INSTALLER_STORE_FILE}"
+  RMDir "$LOCALAPPDATA\${APP_PACKAGE_NAME}-updater"
+  ${if} $installMode == "all"
+    SetShellVarContext all
+  ${endIf}
+!macroend
+
+!macro customInstall
+  !insertmacro wittyRemoveStoredSetup
+!macroend
+
+# A section of its own would make the uninstaller show a page of components, so this is called from
+# the end of removing files, once nothing can stop the uninstall.
+!macro wittyRemoveDataIfAsked
+  ${ifNot} ${isUpdated}
+    # The app doesn't register these today. Removing them here means it never leaves one behind.
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCT_NAME}"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "electron.app.${PRODUCT_NAME}"
+
+    StrCpy $R9 "0"
+    ClearErrors
+    ${GetParameters} $R0
+    ${GetOptions} $R0 "/RemoveData" $R1
+    ${ifNot} ${Errors}
+      StrCpy $R9 "1"
+    ${else}
+      MessageBox MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2 \
+        "${PRODUCT_NAME} has been removed.$\r$\n$\r$\nDo you also want to delete your library, notes and settings for this Windows account?$\r$\n$\r$\nChoose Yes and the copies of your books in the library, and all your highlights, notes and reading positions, are deleted for good. Export anything you want to keep first.$\r$\nChoose No to keep them, in case you install ${PRODUCT_NAME} again.$\r$\n$\r$\nThe original book files you added from elsewhere on this computer are never touched." \
+        /SD IDNO IDNO +2
+      StrCpy $R9 "1"
+    ${endIf}
+
+    ${if} $R9 == "1"
+      # Electron keeps these for each Windows account, wherever the program was installed.
+      ${if} $installMode == "all"
+        SetShellVarContext current
+      ${endIf}
+      RMDir /r "$APPDATA\${PRODUCT_NAME}"
+      ${if} $installMode == "all"
+        SetShellVarContext all
+      ${endIf}
+    ${endIf}
+  ${endIf}
+!macroend
 
 # Takes the place of the standard removal, which deletes the whole folder and whatever is in it.
 !macro customRemoveFiles
@@ -137,45 +200,12 @@ FunctionEnd
   # Move out of the folder so it can go. It stays if someone else's files are still in it.
   SetOutPath $TEMP
   RMDir "$INSTDIR"
-!macroend
-
-!macro customUnInstallSection
-  Section "un.WittyRemoveData"
-    ${ifNot} ${isUpdated}
-      Push ".epub"
-      Call un.wittyForgetExtension
-      Push ".pdf"
-      Call un.wittyForgetExtension
-      Push ".cbz"
-      Call un.wittyForgetExtension
-
-      # The app doesn't register these today. Removing them here means it never leaves one behind.
-      DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCT_NAME}"
-      DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "electron.app.${PRODUCT_NAME}"
-
-      StrCpy $R9 "0"
-      ClearErrors
-      ${GetParameters} $R0
-      ${GetOptions} $R0 "/RemoveData" $R1
-      ${ifNot} ${Errors}
-        StrCpy $R9 "1"
-      ${else}
-        MessageBox MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2 \
-          "${PRODUCT_NAME} has been removed.$\r$\n$\r$\nDo you also want to delete your library, notes and settings for this Windows account?$\r$\n$\r$\nChoose Yes and the copies of your books in the library, and all your highlights, notes and reading positions, are deleted for good. Export anything you want to keep first.$\r$\nChoose No to keep them, in case you install ${PRODUCT_NAME} again.$\r$\n$\r$\nThe original book files you added from elsewhere on this computer are never touched." \
-          /SD IDNO IDNO +2
-        StrCpy $R9 "1"
-      ${endIf}
-
-      ${if} $R9 == "1"
-        # Electron keeps these for each Windows account, wherever the program was installed.
-        ${if} $installMode == "all"
-          SetShellVarContext current
-        ${endIf}
-        RMDir /r "$APPDATA\${PRODUCT_NAME}"
-        ${if} $installMode == "all"
-          SetShellVarContext all
-        ${endIf}
-      ${endIf}
+  ${ifNot} ${isUpdated}
+    !insertmacro wittyRemoveStoredSetup
+    !insertmacro wittyRemoveDataIfAsked
+    # Setup makes this folder if it isn't there. It goes only if nothing else is in it.
+    ${if} $installMode != "all"
+      RMDir "$LOCALAPPDATA\Programs"
     ${endIf}
-  SectionEnd
+  ${endIf}
 !macroend

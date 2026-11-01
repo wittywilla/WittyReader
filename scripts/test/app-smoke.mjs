@@ -101,7 +101,7 @@ if (step === 'first') {
   expect('library', books, [['epub', 'A Made-Up Book', 'A Made-Up Author']])
   await until('the book opening', `caches.has('wittyreader-book')`)
   await until('the book being ready', `caches.open('wittyreader-book').then((c) => c.keys()).then((k) => k.length > 0)`)
-  const chapter = await page.eval(`caches.open('wittyreader-book').then((c) => c.keys()).then((k) => k.find((r) => r.url.endsWith('one.xhtml')).url).then((u) => fetch(u)).then(async (r) => [r.status, r.headers.get('content-security-policy') || '', await r.text()])`)
+  const chapter = await page.eval(`caches.open('wittyreader-book').then((c) => c.keys()).then((k) => new URL(k.find((r) => r.url.endsWith('one.xhtml')).url).pathname).then((p) => fetch(p)).then(async (r) => [r.status, r.headers.get('content-security-policy') || '', await r.text()])`)
   console.log(`a chapter, through the service worker: ${chapter[0]}, with the policy ${chapter[1].slice(0, 60)}...`)
   if (chapter[0] !== 200 || !chapter[2].includes('written for a test')) fail('the service worker did not serve the chapter')
   if (!chapter[1]) fail('a book file came with no security policy')
@@ -109,7 +109,7 @@ if (step === 'first') {
   await sleep(1500)
   const frame = await page.eval(`document.querySelector('iframe').getAttribute('sandbox')`)
   console.log(`the book's frame is sandboxed with: ${JSON.stringify(frame)}`)
-  await screenshot(shot)
+  await screenshot(arg)
 
   console.log('\nwhat it should refuse')
   expect('an address outside the app', await page.eval(`fetch('https://example.com/').then(() => 'reached', () => 'refused')`), 'refused')
@@ -124,8 +124,11 @@ if (step === 'first') {
   expect('notifications', await page.eval(`Notification.requestPermission()`), 'denied')
   expect('the microphone', await page.eval(`navigator.mediaDevices?.getUserMedia ? navigator.mediaDevices.getUserMedia({ audio: true }).then(() => 'given', () => 'refused') : 'refused'`), 'refused')
   expect('location', await page.eval(`new Promise((done) => navigator.geolocation.getCurrentPosition(() => done('given'), () => done('refused'), { timeout: 3000 }))`), 'refused')
-  console.log(`copying to the clipboard's permission: ${await page.eval(`navigator.permissions.query({ name: 'clipboard-write' }).then((p) => p.state)`)}`)
-  console.log(`storage kept when space runs low: ${await page.eval('navigator.storage.persist()')}`)
+  await page.send('Emulation.setFocusEmulationEnabled', { enabled: true })
+  const copy = await page.send('Runtime.evaluate', { expression: `navigator.clipboard.writeText('a made-up quote').then(() => 'copied', (e) => String(e))`, returnByValue: true, awaitPromise: true, userGesture: true })
+  expect('copying to the clipboard after a click, which it needs', copy.result.result.value, 'copied')
+  expect('reading the clipboard', await page.eval(`navigator.clipboard.readText().then(() => 'read', () => 'refused')`), 'refused')
+  expect('the library kept when the disk runs low', await page.eval('navigator.storage.persist()'), true)
 }
 
 if (step === 'count') {

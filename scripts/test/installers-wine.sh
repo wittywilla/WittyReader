@@ -27,7 +27,8 @@ EOF
 docker rm -f wittyreader-inst-wine >/dev/null 2>&1
 docker run -i --rm --name wittyreader-inst-wine -e SHOTS="$SHOTS" -v "$PKGS:/pkgs" "$tag" bash -s >>"$log" 2>&1 <<'SCRIPT'
 set -u
-export WINEPREFIX=/root/wine WINEARCH=win64 WINEDEBUG=-all DISPLAY=:99
+# Wine would otherwise copy shortcuts out to the Linux menus, which is its own doing and not the setup's.
+export WINEPREFIX=/root/wine WINEARCH=win64 WINEDEBUG=-all DISPLAY=:99 WINEDLLOVERRIDES=winemenubuilder.exe=d
 Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
 sleep 1
 fail() { echo "FAIL: $*"; exit 1; }
@@ -38,9 +39,11 @@ APP=WittyReader
 setup=$(ls /pkgs/wittyreader-*-windows-amd64-setup.exe)
 new=$(ls /pkgs/upgrade/wittyreader-*-windows-amd64-setup.exe)
 C="$WINEPREFIX/drive_c"
+# Wine's PowerShell is a stub that says yes to everything, so the setup would believe the app is always
+# running. Without it, the setup asks tasklist instead, as it does on a Windows with PowerShell blocked.
+rm -f "$C/windows/system32/WindowsPowerShell/v1.0/powershell.exe" "$C/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
 USERDIR="$C/users/root"
 ROAMING="$USERDIR/AppData/Roaming"
-WEBPREFIX_USER="$WINEPREFIX/user.reg"
 MINE="$USERDIR/AppData/Local/Programs/$APP"
 EVERYONE="$C/Program Files/$APP"
 
@@ -67,9 +70,9 @@ run_setup() {
   return $code
 }
 leave_data() {
-  mkdir -p "$ROAMING/$APP/Cache/Cache_Data" "$ROAMING/$APP/Local Storage/leveldb" "$ROAMING/$APP/IndexedDB/wittyreader_0.indexeddb.leveldb"
-  echo '{}' > "$ROAMING/$APP/window.json"
-  echo x > "$ROAMING/$APP/Cache/Cache_Data/index"; echo x > "$ROAMING/$APP/IndexedDB/wittyreader_0.indexeddb.leveldb/CURRENT"
+  mkdir -p "$ROAMING/$APP/Cache/Cache_Data" "$ROAMING/$APP/IndexedDB/wittyreader_app_0.indexeddb.leveldb"
+  echo '{}' > "$ROAMING/$APP/window.json"; echo x > "$ROAMING/$APP/IndexedDB/wittyreader_app_0.indexeddb.leveldb/CURRENT"
+  echo x > "$ROAMING/$APP/Cache/Cache_Data/index"
 }
 
 say "what's in the setup"
@@ -87,6 +90,7 @@ diff /tmp/before.txt /tmp/installed.txt | grep '^>' | grep -v 'locales/\|Documen
 [ -f "$MINE/$APP.exe" ] || fail "the app wasn't installed: $(find "$C" -iname "$APP.exe")"
 [ -f "$MINE/Uninstall $APP.exe" ] || fail "no uninstaller"
 [ -f "$MINE/resources/installed-files.txt" ] || fail "no list of installed files"
+[ ! -e "$USERDIR/AppData/Local/wittyreader-updater" ] || fail "it left a copy of the setup"
 [ -f "$USERDIR/Desktop/$APP.lnk" ] || fail "no desktop shortcut"
 find "$C" -name "$APP.lnk" | sed "s|$C/||"
 [ -n "$(find "$USERDIR/AppData/Roaming/Microsoft/Windows/Start Menu" "$C/ProgramData/Microsoft/Windows/Start Menu" -name "$APP.lnk" 2>/dev/null)" ] || fail "no Start menu shortcut"
@@ -94,12 +98,12 @@ grep -a -A12 'CurrentVersion\\\\Uninstall\\\\' "$WINEPREFIX/user.reg" | grep -aE
 reg_has 'DisplayName.*'$APP || fail "no entry in Add or Remove Programs"
 
 say "the file types it registers"
+reg_query() { wine reg query "$@" 2>/dev/null | tr -d '\r'; }
 for ext in epub pdf cbz; do
-  grep -aqi "Classes\\\\\\\\.$ext\]" "$WEBPREFIX_USER" || fail "no .$ext"
-  grep -aqi "WittyReader.$ext" "$WEBPREFIX_USER" || fail "no file type for .$ext"
+  reg_query "HKCU\\Software\\Classes\\.$ext" /ve | grep -aq "WittyReader.$ext" || fail "no .$ext"
 done
-grep -a -A3 'WittyReader.epub\\\\shell\\\\open\\\\command' "$WEBPREFIX_USER" | head -5
-grep -aq "\"\\\\\"C:.*WittyReader.exe" "$WEBPREFIX_USER" || echo "(the command line isn't in the form this expected)"
+reg_query 'HKCU\Software\Classes\WittyReader.epub\shell\open\command' /ve
+reg_query 'HKCU\Software\Classes\WittyReader.epub\shell\open\command' /ve | grep -aq 'WittyReader.exe" "%1"' || fail "the command doesn't open the file"
 
 say "upgrade in place: $new"
 echo mine > "$MINE/my-own-file.txt"
@@ -133,7 +137,7 @@ wineserver -w
 say "uninstall silently, removing the library"
 uninstall "$MINE" /S /RemoveData
 [ ! -e "$MINE" ] || { find "$MINE"; fail "the program's folder stayed"; }
-[ ! -e "$ROAMING/$APP" ] || fail "the settings stayed"
+[ ! -e "$ROAMING/$APP" ] || fail "the library stayed"
 [ -f "$USERDIR/Documents/A Made-Up Book.epub" ] || fail "A BOOK FILE WAS DELETED"
 grep -aq "\"$APP\"=" "$WINEPREFIX/user.reg" && fail "the startup entry stayed"
 grep -aq "electron.app.$APP" "$WINEPREFIX/user.reg" && fail "the other startup entry stayed"
@@ -151,9 +155,9 @@ say "a file type another program had before is given back"
 wine reg add 'HKCU\Software\Classes\.cbz' /ve /d 'SomeoneElse.Comic' /f >/dev/null
 wineserver -w
 run_setup "$setup" /S || fail "install exit $code"
-[ "$(wine reg query 'HKCU\Software\Classes\.cbz' /ve | tr -d '\r' | grep -ac WittyReader.cbz)" = 1 ] || fail "not registered for .cbz"
+reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'WittyReader.cbz' || fail "not registered for .cbz"
 uninstall "$MINE" /S /RemoveData
-wine reg query 'HKCU\Software\Classes\.cbz' /ve | tr -d '\r' | grep -aq 'SomeoneElse.Comic' || fail "didn't give .cbz back"
+reg_query 'HKCU\Software\Classes\.cbz' /ve | grep -aq 'SomeoneElse.Comic' || fail "didn't give .cbz back"
 echo ".cbz belongs to SomeoneElse.Comic again"
 wine reg delete 'HKCU\Software\Classes\.cbz' /f >/dev/null
 wineserver -w
@@ -171,7 +175,7 @@ uninstall "$EVERYONE" /S /allusers
 
 run_setup "$setup" /S /allusers || fail "machine reinstall exit $code"
 uninstall "$EVERYONE" /S /allusers /RemoveData
-[ ! -e "$ROAMING/$APP" ] || fail "the settings stayed"
+[ ! -e "$ROAMING/$APP" ] || fail "the library stayed"
 snapshot > /tmp/after2.txt
 diff -u /tmp/before.txt /tmp/after2.txt | grep -v 'Documents' > /tmp/d2.txt
 if grep -Eq '^[+-][^+-]' /tmp/d2.txt; then cat /tmp/d2.txt; fail "something was left behind by the for-everyone install"; fi
@@ -198,45 +202,54 @@ uninstall "$MINE" /S
 if [ -n "${SHOTS:-}" ]; then
   mkdir -p /pkgs/results/wizard
   shoot() { import -window root "/pkgs/results/wizard/$1.png" 2>/dev/null; }
+  # The wizard and its question have the same title, so the number of windows says which is showing.
+  windows() { xdotool search --onlyvisible --name "$1" 2>/dev/null | wc -l; }
+  wait_windows() {
+    for _ in $(seq 1 120); do [ "$(windows "$1")" -ge "$2" ] && { sleep 2; return 0; }; sleep 1; done
+    shoot stuck; fail "never saw $2 of the window called $1"
+  }
+  finish() { timeout 60 wineserver -w || { echo "(closing what was still open)"; wineserver -k; }; sleep 2; }
+  by_hand() { # the answer to the question: y or n. Photographs it if given a name
+    wine "$MINE/Uninstall $APP.exe" >/dev/null 2>&1 &
+    wait_windows "$APP Uninstall" 1
+    [ -n "${2:-}" ] && shoot "$2-uninstall-start"
+    xdotool key Return
+    wait_windows "$APP Uninstall" 2
+    [ -n "${2:-}" ] && shoot "$2-uninstall-question"
+    xdotool key "$1"
+    sleep 5
+    [ -n "${2:-}" ] && shoot "$2-uninstall-end"
+    xdotool key Return
+    finish
+  }
 
   say "photographing the wizard"
   wine "$setup" >/dev/null 2>&1 &
-  sleep 12
+  wait_windows "$APP Setup" 1
   shoot 1-who-is-it-for
-  xdotool key Return; sleep 3; shoot 2-where
-  xdotool key Return; sleep 45; shoot 3-finished
-  xdotool key alt+f 2>/dev/null; sleep 1
-  xdotool key Return; sleep 3
-  pkill -f "$APP.exe" 2>/dev/null
-  wineserver -k; sleep 2
+  xdotool key Return; sleep 4; shoot 2-where
+  xdotool key Return
+  for _ in $(seq 1 180); do [ -f "$MINE/Uninstall $APP.exe" ] && break; sleep 1; done
+  sleep 10; shoot 3-finished
+  # Finished without starting the app: Wine isn't what it's meant to run on.
+  xdotool key space; sleep 1
+  xdotool key Return
+  finish
   [ -f "$MINE/$APP.exe" ] || fail "the wizard didn't install it"
 
   say "uninstalling by hand, answering No"
   leave_data
-  wine "$MINE/Uninstall $APP.exe" >/dev/null 2>&1 &
-  sleep 10
-  shoot 4-uninstall-start
-  xdotool key Return; sleep 12
-  shoot 5-uninstall-question
-  xdotool search --name "." getwindowname %@ 2>/dev/null | sort -u | head -10
-  xdotool key n; sleep 4
-  shoot 6-uninstall-after-no
-  xdotool key Return; sleep 3
-  wineserver -w
+  by_hand n 4
   [ -f "$ROAMING/$APP/window.json" ] || fail "answering No still took the library"
   [ ! -e "$MINE/$APP.exe" ] || fail "the program stayed"
+  echo "answering No: the program went and the library stayed"
 
   say "uninstalling by hand, answering Yes"
   run_setup "$setup" /S || fail "install exit $code"
-  wine "$MINE/Uninstall $APP.exe" >/dev/null 2>&1 &
-  sleep 10
-  xdotool key Return; sleep 12
-  xdotool key y; sleep 4
-  shoot 7-uninstall-after-yes
-  xdotool key Return; sleep 3
-  wineserver -w
-  [ ! -e "$ROAMING/$APP" ] || fail "answering Yes left the settings"
-  echo "both answers do what they say"
+  by_hand y 5
+  [ ! -e "$ROAMING/$APP" ] || fail "answering Yes left the library"
+  [ ! -e "$MINE/$APP.exe" ] || fail "the program stayed"
+  echo "answering Yes: the program and the library both went"
 fi
 echo ALLPASSED
 SCRIPT
