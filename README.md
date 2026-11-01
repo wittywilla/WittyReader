@@ -23,8 +23,7 @@
   <a href="wiki/Home.md"><b>Full guide</b></a>
 </p>
 
-> Read-only mirror of `apps/wittyreader` in [WittyMediaServer](https://github.com/wittywilla/WittyMediaServer),
-> where development happens. Please open issues and pull requests there.
+> WittyReader is developed and released here. Issues and pull requests are welcome.
 
 ## Highlights
 
