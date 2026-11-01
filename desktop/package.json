@@ -141,7 +141,9 @@
           "role": "Viewer",
           "rank": "Default"
         }
-      ]
+      ],
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "dmg": {
       "title": "WittyReader ${version}",

@@ -25,7 +25,8 @@ npm ci --ignore-scripts
 npm run package:win      # or package:linux, package:mac
 ```
 
-They go in `desktop/out/`. Windows needs building on Windows, and `.dmg` on a Mac. `.rpm` needs the `rpm` tool.
+They go in `desktop/out/`. Nothing is code-signed yet: `identity` and `hardenedRuntime` under `mac` in `desktop/package.json` make the
+stand-in signature that Apple silicon needs, and come out when there's a real certificate. Windows needs building on Windows, and `.dmg` on a Mac. `.rpm` needs the `rpm` tool.
 `scripts/test/installers-linux.sh` and `scripts/test/installers-wine.sh` run them for real in throwaway containers, and compare the
 file system and registry from before and after. `scripts/test/mac-uninstaller.sh` checks the Mac uninstaller's logic.
 
