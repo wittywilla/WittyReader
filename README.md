@@ -1,107 +1,101 @@
-<p align="center">
-  <img src="public/icon.svg" width="88" alt="">
-</p>
+# WittyReader
 
-<h1 align="center">WittyReader</h1>
+Read and annotate books, PDFs and comics on your own device, with no server and nothing uploaded. You need it if you want the Witty readers without running a WittyMediaServer.
 
-<p align="center">
-  <b>Read and annotate books, PDFs and comics — on your own device.</b><br>
-  Highlights, notes and a pen with pressure. Nothing is uploaded: your library and notes stay with you.
-</p>
+## What it does
 
-<p align="center">
-  <a href="LICENSE"><img alt="Licence: Apache-2.0" src="https://img.shields.io/badge/licence-Apache--2.0-blue.svg"></a>
-  <img alt="Installable app" src="https://img.shields.io/badge/installs%20as-an%20app-8b6cff.svg">
-  <img alt="Works offline" src="https://img.shields.io/badge/works-offline-success.svg">
-  <img alt="No uploads" src="https://img.shields.io/badge/uploads-none-informational.svg">
-</p>
+**Your library**
 
-<p align="center">
-  <a href="#install-it">Install it</a> ·
-  <a href="#run-it-from-source">Run it from source</a> ·
-  <a href="wiki/Getting-started.md">Getting started</a> ·
-  <a href="wiki/Privacy-and-security.md">Privacy</a> ·
-  <a href="wiki/Home.md"><b>Full guide</b></a>
-</p>
+- **Add books your way:** the **Add books** button, Ctrl+O, drag and drop, or your system's *Open with* once installed.
+- **Continue reading:** the book you're in, front and centre, with your progress.
+- **Find anything:** search, filter by books, PDFs or comics, and sort by recent, added, title or author.
+- **Covers and titles from the files:** EPUB metadata and covers, PDF first pages, a comic's `ComicInfo.xml`. Books without a cover get one of their own.
+- **No duplicates:** adding the same file again finds the copy you have.
 
-> WittyReader is developed and released here. Issues and pull requests are welcome.
+**Reading**
 
-## Highlights
+- **Books (EPUB),** with [WittyEbook](https://github.com/wittywilla/WittyEbook).
+- **PDFs,** with [WittyPDF](https://github.com/wittywilla/WittyPDF).
+- **Comics and manga (CBZ),** with [WittyComics](https://github.com/wittywilla/WittyComics).
+- **Study tools** from [WittyInk](https://github.com/wittywilla/WittyInk): highlights, notes, bookmarks, citations, reading aloud, and a pen with pressure.
 
-| | Your library | |
-|---|---|---|
-| ➕ | **Add books your way** | the **Add books** button, Ctrl+O, drag and drop, or your system's *Open with* once installed |
-| ▶️ | **Continue reading** | the book you're in, front and centre, with your progress |
-| 🔎 | **Find anything** | search, filter by books, PDFs or comics, and sort by recent, added, title or author |
-| 🖼️ | **Covers and titles from the files** | EPUB metadata and covers, PDF first pages, comic `ComicInfo.xml`; books without a cover get one of their own |
-| ♻️ | **No duplicates** | adding the same file again finds the copy you have |
+**Private and portable**
 
-| | Reading | |
-|---|---|---|
-| 📖 | **Books (EPUB)** | with [WittyEbook](https://github.com/wittywilla/WittyEbook): book view, typography, page colours, night light, time left |
-| 📄 | **PDFs** | with [WittyPDF](https://github.com/wittywilla/WittyPDF): zoom, dark pages, outline, thumbnails, search |
-| 💬 | **Comics and manga (CBZ)** | with [WittyComics](https://github.com/wittywilla/WittyComics): pages, spreads, strips, either direction |
-| ✍️ | **Study tools** | from [WittyInk](https://github.com/wittywilla/WittyInk): highlights, notes, bookmarks, citations, read aloud, a pen with pressure |
+- **On the device:** books, positions and notes stay with you. The only outside request is a dictionary look-up, off until you turn it on.
+- **Books can't run code:** EPUB files are sandboxed with scripts blocked, and PDF scripts and forms are off.
+- **Notes go with you:** export a book's notes to a file and import them on another device, or save a readable Markdown summary.
+- **Offline:** it works offline after the first visit.
 
-| | Private and portable | |
-|---|---|---|
-| 🔒 | **On the device** | books, positions and notes live in this browser; the only outside request is a dictionary look-up, off until you turn it on |
-| 🛡️ | **Books can't run code** | EPUB files are sandboxed with scripts blocked; PDF scripts and forms are off; the app runs under a strict security policy |
-| 📦 | **Notes go with you** | export a book's notes to a file and import them on another device, or save a readable Markdown summary |
-| ✈️ | **Offline** | works offline after the first visit, and installs as an app |
+The guides are in [wiki/](wiki/Home.md): [Getting started](wiki/Getting-started.md), [Your library](wiki/Your-library.md), [Reading](wiki/Reading.md), [Notes and backups](wiki/Notes-and-backups.md), [Privacy and security](wiki/Privacy-and-security.md) and [Troubleshooting](wiki/Troubleshooting.md).
 
-## Install it
+## How to get it
 
-[The releases page](https://github.com/wittywilla/WittyReader/releases) has an installer for each system:
+Each release has an installer for each system, made by `electron-builder` from `desktop/`:
 
 | You have | Download |
 |---|---|
 | Windows 10 or later | `wittyreader-<version>-windows-amd64-setup.exe` |
-| A Mac | `wittyreader-<version>-macos-arm64.dmg` for Apple silicon, `-macos-x64.dmg` for Intel |
+| A Mac with Apple silicon | `wittyreader-<version>-macos-arm64.dmg` |
+| A Mac with an Intel chip | `wittyreader-<version>-macos-x64.dmg` |
 | Debian, Ubuntu and relatives | `wittyreader-<version>-linux-amd64.deb` |
 | Fedora and relatives | `wittyreader-<version>-linux-amd64.rpm` |
 | Any other Linux | `wittyreader-<version>-linux-amd64.AppImage` |
 | Your own web server | `wittyreader-<version>.zip`: see [Hosting and building](wiki/Hosting-and-building.md) |
 
-Installed, it opens `.epub`, `.pdf` and `.cbz` files from your system. Removing it asks whether to delete your library and
-notes as well, which can't be undone. [Installing and removing](wiki/Installing-and-removing.md) has the steps for each system,
-and every folder involved.
+Nothing is code-signed yet, so Windows and macOS warn about the installers. Installed, it opens `.epub`, `.pdf` and `.cbz` files from your system. Removing it asks whether to delete your library and notes as well, which can't be undone. [Installing and removing](wiki/Installing-and-removing.md) has the steps for each system, and every folder involved.
 
-## Run it from source
+## What it needs
 
-You need [Node.js](https://nodejs.org) 20 or newer.
+- **Installed:** nothing else. It brings its own Electron.
+- **In a browser:** the web app is a plain static site, hosted over **https** or opened from `localhost`, because browsers only allow its offline service worker, which also shows EPUBs, on secure addresses.
+
+It's built on WittyEbook, WittyPDF, WittyComics and WittyInk, with pdf.js, React and fflate.
+
+## Platforms
+
+| System | Where it stands |
+|---|---|
+| Windows | The setup and uninstaller ran under Wine, in a throwaway container. Not on real Windows |
+| Linux | `.deb` and `.rpm` installed, opened on a virtual screen, upgraded and removed in containers. No real desktop yet |
+| macOS | The workflow builds for it, and that has not run yet. It has not been run on a real Mac. Its uninstaller's logic only ran on Linux with a stand-in home folder |
+
+## Building and testing
+
+You need [Node.js](https://nodejs.org) 20 or newer. In a worktree, or to build against the reader repositories beside this one, first run the copy of `dev-modules.mjs` kept above the repositories (`node D:/projects/dev-modules.mjs` on the development machine). It writes only `node_modules` links that git ignores.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5180
-npm run build      # the finished app, in dist/
 ```
 
-`dist/` is a plain static site: host it on any web server over **https**, or open it from `localhost`.
-Browsers only allow the offline service worker, which also shows EPUBs, on secure addresses. See
-[Hosting and building](wiki/Hosting-and-building.md).
+```bash
+npm run dev
+```
 
-| Guide | |
-|---|---|
-| [Getting started](wiki/Getting-started.md) | adding books and finding your way |
-| [Installing and removing](wiki/Installing-and-removing.md) | the installers, where things are kept, removing everything |
-| [Your library](wiki/Your-library.md) · [Reading](wiki/Reading.md) | the shelf, and every reading tool |
-| [Notes and backups](wiki/Notes-and-backups.md) | exporting and importing notes |
-| [Privacy and security](wiki/Privacy-and-security.md) · [Troubleshooting](wiki/Troubleshooting.md) | |
+```bash
+npm run build
+```
 
-## The Witty family
+`npm run dev` serves it at `http://localhost:5180`, and `npm run build` makes the finished app in `dist/`. See [Hosting and building](wiki/Hosting-and-building.md).
 
-| Project | Role |
-|---|---|
-| **WittyReader** | this app: the readers, on your own device |
-| [WittyEbook](https://github.com/wittywilla/WittyEbook) · [WittyPDF](https://github.com/wittywilla/WittyPDF) · [WittyComics](https://github.com/wittywilla/WittyComics) · [WittyInk](https://github.com/wittywilla/WittyInk) | the readers and their shared tools |
-| [WittyMediaServer](https://github.com/wittywilla/WittyMediaServer) | the same readers, plus films, TV, discs and music, served to your whole home |
+The desktop app is in `desktop/`:
+
+```bash
+cd desktop
+npm ci
+npm test
+```
+
+`npm run package:win`, `package:mac` and `package:linux` make the installers. `scripts/test` has the checks that really install them:
+
+- `scripts/test/installers-linux.sh` proves the Linux packages in throwaway containers.
+- `scripts/test/installers-wine.sh` runs the Windows setup in a throwaway container with Wine.
+- `scripts/test/mac-uninstaller.sh` runs the Mac uninstaller's logic against a stand-in home folder. It needs no Mac, and says nothing about a real one.
 
 ## Licence
 
-**Apache-2.0**, the same licence as WittyMediaServer. © 2026 WittyWilla and contributors.
-Use, change and share it; if you redistribute it or build on it, keep the [NOTICE](NOTICE)
-attribution, *“WittyReader, developed by WittyWilla”*, in your NOTICE file, documentation or About screen.
+Apache-2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute it or build on it, keep the NOTICE attribution.
+
+Bundled in the built app: pdf.js (`pdfjs-dist`, Apache-2.0, Mozilla Foundation), React and React DOM (MIT, Meta Platforms and affiliates), and fflate (MIT, Arjun Barrett). In the installers only, not in the zip: Electron (MIT), which bundles Chromium and FFmpeg, whose licences ship with every installed copy in `LICENSE.electron.txt` and `LICENSES.chromium.html`.
 
 ## Legal
 
