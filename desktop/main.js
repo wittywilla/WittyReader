@@ -114,6 +114,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, spellcheck: false,
+      safeDialogs: true, devTools: !app.isPackaged,
     },
   })
   win.once('ready-to-show', () => win.show())
