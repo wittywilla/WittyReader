@@ -18,7 +18,7 @@
     "package:linux": "npm run web && electron-builder --linux"
   },
   "devDependencies": {
-    "electron": "45.2.0",
+    "electron": "45.2.1",
     "electron-builder": "26.18.0"
   },
   "build": {
@@ -57,9 +57,12 @@
     "afterPack": "build/after-pack.js",
     "electronFuses": {
       "runAsNode": false,
+      "enableCookieEncryption": true,
       "enableNodeOptionsEnvironmentVariable": false,
       "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
       "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
       "grantFileProtocolExtraPrivileges": false
     },
     "win": {
@@ -278,6 +281,7 @@
         "libuuid",
         "libsecret"
       ]
-    }
+    },
+    "asar": true
   }
 }
