@@ -14,7 +14,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
-    "paths": { "@wittywilla/*": ["../../web/src/modules/*", "./node_modules/@wittywilla/*"] }
+    "paths": { "@wittywilla/*": ["./node_modules/@wittywilla/*"] }
   },
   "include": ["src"]
 }
