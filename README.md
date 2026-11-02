@@ -2,6 +2,18 @@
 
 Read and annotate books, PDFs and comics on your own device, with no server and nothing uploaded. You need it if you want the Witty readers without running a WittyMediaServer.
 
+<!-- pictures -->
+
+![A library of books, PDFs and comics](docs/images/reader-library.webp)
+
+<sub>Covers and text from [Standard Ebooks](https://standardebooks.org/), [CC0](https://creativecommons.org/publicdomain/zero/1.0/); Earth as Art, NASA, public domain; [Pepper&Carrot](https://www.peppercarrot.com/), David Revoy, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).</sub>
+
+![A book open in WittyReader](docs/images/reader-book.webp)
+
+<sub>Text and cover from [Standard Ebooks](https://standardebooks.org/), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).</sub>
+
+<!-- /pictures -->
+
 ## What it does
 
 **Your library**
