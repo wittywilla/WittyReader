@@ -10,6 +10,7 @@ export type BookRec = {
   name: string; title: string; author?: string; year?: number | null; format: Format; reading?: string
   size: number; added: number; opened: number
   position: number; total: number
+  words?: number[] // a book's words in each chapter, kept when it's opened, for how far through it is
   cover?: Blob
 }
 type NoteRec = Ann & { book: string }
@@ -44,10 +45,11 @@ export const books = {
   all: () => run<BookRec[]>(['books'], 'readonly', (t) => t.objectStore('books').getAll()),
   get: (key: string) => run<BookRec | undefined>(['books'], 'readonly', (t) => t.objectStore('books').get(key)),
   put: (b: BookRec) => run(['books'], 'readwrite', (t) => { t.objectStore('books').put(b) }),
-  async patch(key: string, patch: Partial<BookRec>) {
-    const b = await books.get(key)
-    if (b) await books.put({ ...b, ...patch })
-  },
+  // Some of a book's fields, read and written in one go, so two changes at once both stay.
+  patch: (key: string, patch: Partial<BookRec>) => run(['books'], 'readwrite', (t) => {
+    const s = t.objectStore('books'), r = s.get(key)
+    r.onsuccess = () => { if (r.result) s.put({ ...r.result, ...patch }) }
+  }),
   // A book and everything kept for it.
   remove: (key: string) => run(['books', 'files', 'notes'], 'readwrite', (t) => {
     t.objectStore('books').delete(key)
