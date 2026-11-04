@@ -39,14 +39,15 @@ async function pdfjs() {
 const pdfDecoders = () => ({ wasmUrl: new URL(__PDF_ASSETS__ + 'wasm/', document.baseURI).href, iccUrl: new URL(__PDF_ASSETS__ + 'iccs/', document.baseURI).href })
 
 // What pdf.js opens a stored PDF from: the file read in pieces as pdf.js asks for
-// them, so a large PDF is never held in memory whole. pdf.js takes over whatever it
-// is given, so every opening (the reader may open it more than once) gets its own.
-async function pdfSource(blob: Blob): Promise<() => NonNullable<ReaderHost['pdf']>> {
+// them, so opening a large PDF reads only what its first pages need, not the whole
+// file. pdf.js takes over whatever it is given, so every opening (the reader may
+// open it more than once) gets its own.
+async function pdfSource(blob: Blob, failed: () => void): Promise<() => NonNullable<ReaderHost['pdf']>> {
   const lib = await pdfjs()
   class Pieces extends lib.PDFDataRangeTransport {
     private stopped = false
     requestDataRange(begin: number, end: number) {
-      blob.slice(begin, end).arrayBuffer().then((b) => { if (!this.stopped) this.onDataRange(begin, new Uint8Array(b)) }, () => {})
+      blob.slice(begin, end).arrayBuffer().then((b) => { if (!this.stopped) this.onDataRange(begin, new Uint8Array(b)) }, () => { if (!this.stopped) failed() })
     }
     abort() { this.stopped = true }
   }
@@ -67,7 +68,7 @@ export async function importFile(file: File): Promise<BookRec> {
   if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) { // %PDF
     rec.format = 'pdf'
     const lib = await pdfjs()
-    const task = lib.getDocument({ data: bytes.slice(), enableXfa: false, ...pdfDecoders() })
+    const task = lib.getDocument({ data: bytes, enableXfa: false, ...pdfDecoders() }) // pdf.js takes these bytes over: not needed again
     const doc = await task.promise
     try {
       const info: any = (await doc.getMetadata()).info || {}
@@ -159,7 +160,10 @@ export async function openBook(rec: BookRec, opts: { toast: (m: string) => void;
     close: opts.close,
   }
   if (rec.format === 'pdf') {
-    Object.defineProperty(host, 'pdf', { get: await pdfSource(blob), enumerable: true })
+    // pdf.js has no way to hear that a piece couldn't be read, so the reader is told and the book closed.
+    let told = false
+    const failed = () => { if (told) return; told = true; opts.toast('This PDF couldn’t be read from this device. Add the file again.'); opts.close() }
+    Object.defineProperty(host, 'pdf', { get: await pdfSource(blob, failed), enumerable: true })
     return { host, cleanup: () => {} }
   }
   const bytes = new Uint8Array(await blob.arrayBuffer())
