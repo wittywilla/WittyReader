@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import WittyComics from '@wittywilla/wittycomics'
 import WittyEbook from '@wittywilla/wittyebook'
 import { HostContext, IconClose, IconMore, IconSearch, IconSettings, type ReaderHost } from '@wittywilla/wittyink'
@@ -236,19 +236,35 @@ function Hero({ b, read }: { b: BookRec; read: () => void }) {
 function Card({ b, read, remove, exportNotes }: { b: BookRec; read: () => void; remove: () => void; exportNotes: () => void }) {
   const [menu, setMenu] = useState(false)
   const box = useRef<HTMLLIElement | null>(null)
-  // The menu closes on a click anywhere else or on Esc.
+  const more = useRef<HTMLButtonElement | null>(null)
+  const list = useRef<HTMLDivElement | null>(null)
+  // The menu closes on a click anywhere else, or on Esc or Tab, back to its button.
   useEffect(() => {
     if (!menu) return
     const off = (e: Event) => { if (!box.current?.contains(e.target as Node)) setMenu(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setMenu(false); more.current?.focus() } }
     document.addEventListener('pointerdown', off)
     document.addEventListener('keydown', esc)
     return () => { document.removeEventListener('pointerdown', off); document.removeEventListener('keydown', esc) }
   }, [menu])
+  // Open, it takes the focus, and opens the other way where the screen ends (a phone's left column).
+  useLayoutEffect(() => {
+    const m = list.current
+    if (!menu || !m) return
+    if (m.getBoundingClientRect().left < 8) m.classList.add('wr-menu-start')
+    m.querySelector<HTMLElement>('[role=menuitem]')?.focus()
+  }, [menu])
+  const keys = (e: React.KeyboardEvent) => {
+    const items = Array.from(list.current?.querySelectorAll<HTMLElement>('[role=menuitem]') || [])
+    const at = items.indexOf(document.activeElement as HTMLElement)
+    const go = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[e.key]
+    if (go !== undefined) { e.preventDefault(); items[(go + items.length) % items.length]?.focus() }
+    else if (e.key === 'Tab') { e.preventDefault(); setMenu(false); more.current?.focus() }
+  }
   const pct = progress(b)
   return (
     <li className="wr-card" ref={box}>
-      <button className="wr-cover" onClick={read} aria-label={`Read ${b.title}`}>
+      <button className="wr-cover" onClick={read} aria-label={`Read ${b.title}, ${FORMAT_NAMES[b.format]}`}>
         <Cover b={b} />
         <span className="wr-badge">{FORMAT_NAMES[b.format]}</span>
         {pct > 0 && pct < 100 && <span className="wr-prog"><i style={{ width: `${pct}%` }} /></span>}
@@ -259,14 +275,14 @@ function Card({ b, read, remove, exportNotes }: { b: BookRec; read: () => void; 
           <b title={b.title}>{b.title}</b>
           <span className="wr-sub">{b.author || (pct ? '' : 'New')}{b.author && pct > 0 && pct < 100 ? ' · ' : ''}{pct > 0 && pct < 100 ? `${pct}%` : ''}</span>
         </div>
-        <button className="ibtn sm wr-more" aria-label={`More for ${b.title}`} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)}><IconMore /></button>
+        <button ref={more} className="ibtn sm wr-more" aria-label={`More for ${b.title}`} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)}><IconMore /></button>
       </div>
       {menu && (
-        <div className="wr-menu" role="menu">
-          <button role="menuitem" onClick={() => { setMenu(false); read() }}>{pct > 0 && pct < 100 ? 'Continue reading' : 'Read'}</button>
-          <button role="menuitem" onClick={() => { setMenu(false); exportNotes() }}>Export notes</button>
+        <div className="wr-menu" role="menu" ref={list} onKeyDown={keys}>
+          <button role="menuitem" tabIndex={-1} onClick={() => { setMenu(false); read() }}>{pct > 0 && pct < 100 ? 'Continue reading' : 'Read'}</button>
+          <button role="menuitem" tabIndex={-1} onClick={() => { setMenu(false); exportNotes() }}>Export notes</button>
           <hr />
-          <button role="menuitem" className="danger" onClick={() => { setMenu(false); remove() }}>Remove from this device</button>
+          <button role="menuitem" tabIndex={-1} className="danger" onClick={() => { setMenu(false); remove() }}>Remove from this device</button>
         </div>
       )}
     </li>
@@ -275,15 +291,28 @@ function Card({ b, read, remove, exportNotes }: { b: BookRec; read: () => void; 
 
 function Settings({ dictionary, setDictionary, importNotes, close }: { dictionary: boolean; setDictionary: (on: boolean) => void; importNotes: () => void; close: () => void }) {
   const [used, setUsed] = useState('')
+  const box = useRef<HTMLElement | null>(null)
   useEffect(() => {
     navigator.storage?.estimate?.().then((e) => setUsed(`${((e.usage || 0) / 1048576).toFixed(1)} MB`)).catch(() => {})
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     window.addEventListener('keydown', esc)
     return () => window.removeEventListener('keydown', esc)
   }, [close])
+  // The focus goes into the dialog, stays there while it's open, and goes back where it was.
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null
+    box.current?.querySelector<HTMLElement>('input, button')?.focus()
+    return () => before?.focus()
+  }, [])
+  const trap = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab') return
+    const all = Array.from(box.current?.querySelectorAll<HTMLElement>('input, button, a[href]') || [])
+    const edge = e.shiftKey ? all[0] : all[all.length - 1]
+    if (document.activeElement === edge) { e.preventDefault(); (e.shiftKey ? all[all.length - 1] : all[0])?.focus() }
+  }
   return (
     <div className="wr-modal" onClick={(e) => { if (e.target === e.currentTarget) close() }}>
-      <section className="wr-dialog" role="dialog" aria-modal="true" aria-label="Settings">
+      <section className="wr-dialog" role="dialog" aria-modal="true" aria-label="Settings" ref={box} onKeyDown={trap}>
         <header><h2>Settings</h2><button className="ibtn sm" onClick={close} aria-label="Close"><IconClose /></button></header>
         <div className="wr-set">
           <label className="wr-switch">

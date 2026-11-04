@@ -73,6 +73,8 @@ body { background: radial-gradient(1200px 600px at 10% -10%, rgba(139,108,255,.1
 .wr-menu { position: absolute; right: 0; top: calc(100% + 2px); z-index: 4; display: grid; min-width: 220px; padding: 6px; border-radius: 12px;
   background: var(--bg-2); border: 1px solid var(--border); box-shadow: 0 18px 44px rgba(0,0,0,.5); animation: wr-pop .14s ease-out; transform-origin: top right; }
 @keyframes wr-pop { from { opacity: 0; transform: scale(.96); } }
+/* Opened the other way when there's no room to the left of its card. */
+.wr-menu.wr-menu-start { right: auto; left: 0; transform-origin: top left; }
 .wr-menu button { text-align: left; background: none; border: 0; padding: 9px 12px; border-radius: 8px; font-size: 14px; }
 .wr-menu button:hover, .wr-menu button:focus-visible { background: var(--bg-3); }
 .wr-menu hr { border: 0; height: 1px; background: var(--border); margin: 4px 6px; }
