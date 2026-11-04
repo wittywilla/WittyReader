@@ -106,7 +106,9 @@ export default function App() {
   const remove = async (rec: BookRec) => {
     if (!confirm(`Remove “${rec.title}” and its notes from this device?`)) return
     await books.remove(rec.key)
-    refresh()
+    await refresh()
+    // Its card and menu are gone: the keyboard carries on from the first book, not the top of the page.
+    setTimeout(() => document.querySelector<HTMLElement>('.wr-grid .wr-cover')?.focus(), 50) // once the library has redrawn
   }
 
   const toastEl = msg && <div className="wr-toast" role="status">{msg}</div>
@@ -257,7 +259,7 @@ function Card({ b, read, remove, exportNotes }: { b: BookRec; read: () => void; 
   const keys = (e: React.KeyboardEvent) => {
     const items = Array.from(list.current?.querySelectorAll<HTMLElement>('[role=menuitem]') || [])
     const at = items.indexOf(document.activeElement as HTMLElement)
-    const go = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[e.key]
+    const go = { ArrowDown: at + 1, ArrowUp: (at < 0 ? 0 : at) - 1, Home: 0, End: items.length - 1 }[e.key]
     if (go !== undefined) { e.preventDefault(); items[(go + items.length) % items.length]?.focus() }
     else if (e.key === 'Tab') { e.preventDefault(); setMenu(false); more.current?.focus() }
   }
