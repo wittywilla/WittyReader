@@ -12,7 +12,7 @@ import { books, type BookRec } from './store'
 const WittyPDF = lazy(() => import('@wittywilla/wittypdf'))
 const DICT_KEY = 'wittyreader.dictionary'
 const ACCEPT = '.epub,.pdf,.cbz,application/epub+zip,application/pdf'
-const VERSION = '0.1.1'
+const VERSION = '0.1.2'
 const SORT_KEY = 'wittyreader.sort'
 
 export default function App() {
