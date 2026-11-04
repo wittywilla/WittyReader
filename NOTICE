@@ -15,7 +15,10 @@ WittyReader is built from the WittyInk, WittyEbook, WittyPDF and WittyComics
 plugins (Copyright 2026 WittyWilla and contributors, Apache License 2.0).
 
 Third-party components bundled in the built app:
-- pdf.js (pdfjs-dist), Copyright Mozilla Foundation - Apache License 2.0
+- pdf.js (pdfjs-dist), Copyright Mozilla Foundation - Apache License 2.0, with its
+  image decoders in assets/pdfjs-<version>/: OpenJPEG (BSD 2-Clause), PDFium's
+  JBIG2 decoder (BSD 3-Clause), qcms (MIT) and a colour profile (CC0). Each one's
+  licence is in that folder.
 - React and React DOM, Copyright Meta Platforms, Inc. and affiliates - MIT
 - fflate, Copyright Arjun Barrett - MIT
 
