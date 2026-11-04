@@ -87,7 +87,11 @@ npm run dev
 npm run build
 ```
 
-`npm run dev` serves it at `http://localhost:5180`, and `npm run build` makes the finished app in `dist/`. See [Hosting and building](wiki/Hosting-and-building.md).
+```bash
+npm test
+```
+
+`npm run dev` serves it at `http://localhost:5180`, and `npm run build` makes the finished app in `dist/`. See [Hosting and building](wiki/Hosting-and-building.md). `npm test` checks the comic reader's ZIP handling, and needs Node.js 22.6 or newer.
 
 The desktop app is in `desktop/`:
 

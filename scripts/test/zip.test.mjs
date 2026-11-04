@@ -14,7 +14,7 @@ const files = {
 }
 
 test('lists every file with its name, and reads each back as it was', async () => {
-  const blob = new Blob([zipSync(files, { comment: 'a comment at the end' })])
+  const blob = new Blob([zipSync(files)])
   const list = await zipFiles(blob)
   assert.deepStrictEqual(list.map((f) => f.name).sort(), Object.keys(files).sort())
   for (const f of list) {
@@ -31,6 +31,19 @@ test('a stored file comes back with the type asked for', async () => {
   assert.strictEqual((await zipFile(blob, f, 'image/png')).type, 'image/png')
 })
 
+test('the end record is the one whose comment reaches the end, not a look-alike in the comment', async () => {
+  // fflate puts a comment before the end record, so this one is written by hand: an empty end
+  // record's bytes and one more, after the real end record, which gives their length.
+  const z = zipSync({ 'a.jpg': [page(1), { level: 0 }] })
+  const lookAlike = [0x50, 0x4b, 0x05, 0x06, ...new Array(18).fill(0), 0x78]
+  const withComment = new Uint8Array(z.length + lookAlike.length)
+  withComment.set(z)
+  withComment.set(lookAlike, z.length)
+  new DataView(withComment.buffer).setUint16(z.length - 2, lookAlike.length, true)
+  const blob = new Blob([withComment])
+  assert.deepStrictEqual((await zipFiles(blob)).map((f) => f.name), ['a.jpg'])
+})
+
 test('anything that is not a ZIP gives null, to be unpacked the old way', async () => {
   assert.strictEqual(await zipFiles(new Blob(['%PDF-1.7 not a zip'])), null)
   assert.strictEqual(await zipFiles(new Blob([])), null)
@@ -42,5 +55,5 @@ test('an encrypted file is refused when read', async () => {
   for (let i = 0; i < z.length - 4; i++) if (dv.getUint32(i, true) === 0x02014b50) dv.setUint16(i + 8, dv.getUint16(i + 8, true) | 1, true)
   const blob = new Blob([z])
   const [f] = await zipFiles(blob)
-  await assert.rejects(zipFile(blob, f))
+  await assert.rejects(zipFile(blob, f), /password/)
 })

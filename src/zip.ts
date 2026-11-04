@@ -15,7 +15,8 @@ export async function zipFiles(blob: Blob): Promise<ZipFile[] | null> {
   const tailAt = Math.max(0, blob.size - 65557) // the end record, after a comment of up to 64 KB
   const tail = await read(blob, tailAt, blob.size)
   let end = -1
-  for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { end = i; break }
+  // The end record's signature, where its comment then runs exactly to the end of the file.
+  for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50 && i + 22 + tail.getUint16(i + 20, true) === tail.byteLength) { end = i; break }
   if (end < 0) return null
   const count = tail.getUint16(end + 10, true), size = tail.getUint32(end + 12, true), start = tail.getUint32(end + 16, true)
   if (count === 0xffff || size === 0xffffffff || start === 0xffffffff || start + size > blob.size) return null
@@ -43,6 +44,7 @@ export async function zipFile(blob: Blob, f: ZipFile, type = ''): Promise<Blob> 
   const from = f.at + 30 + local.getUint16(26, true) + local.getUint16(28, true)
   const packed = blob.slice(from, from + f.packed)
   if (f.method === 0) return packed.slice(0, f.packed, type)
+  if (f.method === -1) throw new Error('This comic is protected with a password, so it can’t be opened here.')
   if (f.method !== 8) throw new Error('This comic is packed in a way WittyReader can’t read.')
   if (typeof DecompressionStream !== 'undefined') {
     return new Blob([await new Response(packed.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()], { type })
