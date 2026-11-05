@@ -34,6 +34,26 @@ async function pdfjs() {
   lib.GlobalWorkerOptions.workerSrc = worker.default
   return lib
 }
+// pdf.js fetches its image decoders and colour profiles by name, from folders
+// vite.config.ts puts beside the app. Scanned PDFs need them for their pictures.
+const pdfDecoders = () => ({ wasmUrl: new URL(__PDF_ASSETS__ + 'wasm/', document.baseURI).href, iccUrl: new URL(__PDF_ASSETS__ + 'iccs/', document.baseURI).href })
+
+// What pdf.js opens a stored PDF from: the file read in pieces as pdf.js asks for
+// them, so opening a large PDF reads only what its first pages need, not the whole
+// file. pdf.js takes over whatever it is given, so every opening (the reader may
+// open it more than once) gets its own.
+async function pdfSource(blob: Blob, failed: () => void): Promise<() => NonNullable<ReaderHost['pdf']>> {
+  const lib = await pdfjs()
+  class Pieces extends lib.PDFDataRangeTransport {
+    private stopped = false
+    requestDataRange(begin: number, end: number) {
+      blob.slice(begin, end).arrayBuffer().then((b) => { if (!this.stopped) this.onDataRange(begin, new Uint8Array(b)) }, () => { if (!this.stopped) failed() })
+    }
+    abort() { this.stopped = true }
+  }
+  // WittyPDF passes on to pdf.js what it's given here, range included.
+  return () => ({ range: new Pieces(blob.size, null), ...pdfDecoders() }) as NonNullable<ReaderHost['pdf']>
+}
 
 // Adds a file to the library (or finds it there already) and returns it.
 export async function importFile(file: File): Promise<BookRec> {
@@ -48,7 +68,8 @@ export async function importFile(file: File): Promise<BookRec> {
   if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) { // %PDF
     rec.format = 'pdf'
     const lib = await pdfjs()
-    const doc = await lib.getDocument({ data: bytes.slice(), isEvalSupported: false, enableXfa: false }).promise
+    const task = lib.getDocument({ data: bytes, enableXfa: false, ...pdfDecoders() }) // pdf.js takes these bytes over: not needed again
+    const doc = await task.promise
     try {
       const info: any = (await doc.getMetadata()).info || {}
       if (info.Title?.trim()) rec.title = info.Title.trim()
@@ -60,9 +81,9 @@ export async function importFile(file: File): Promise<BookRec> {
       const vp = page.getViewport({ scale: 300 / page.getViewport({ scale: 1 }).width })
       const c = document.createElement('canvas')
       c.width = vp.width; c.height = vp.height
-      await page.render({ canvasContext: c.getContext('2d')!, viewport: vp }).promise
+      await page.render({ canvas: c, viewport: vp }).promise
       rec.cover = await thumb(c)
-    } finally { doc.destroy() }
+    } finally { task.destroy() }
   } else if (bytes[0] === 0x50 && bytes[1] === 0x4b) { // a ZIP: an EPUB or a comic
     const head = unzipSync(bytes, { filter: (f) => f.name === 'mimetype' || f.name === 'META-INF/container.xml' })
     if (head['META-INF/container.xml'] || (head.mimetype && strFromU8(head.mimetype).trim() === 'application/epub+zip')) {
@@ -120,7 +141,6 @@ export async function lookUp(word: string): Promise<Definition[]> {
 export async function openBook(rec: BookRec, opts: { toast: (m: string) => void; close: () => void; dictionary: boolean }): Promise<{ host: ReaderHost; cleanup: () => void }> {
   const blob = await files.get(rec.key)
   if (!blob) throw new Error('This book is no longer stored on this device. Open the file again.')
-  const bytes = new Uint8Array(await blob.arrayBuffer())
   books.patch(rec.key, { opened: Date.now() })
   const host: ReaderHost = {
     key: rec.key,
@@ -140,9 +160,13 @@ export async function openBook(rec: BookRec, opts: { toast: (m: string) => void;
     close: opts.close,
   }
   if (rec.format === 'pdf') {
-    host.pdf = { data: bytes }
+    // pdf.js has no way to hear that a piece couldn't be read, so the reader is told and the book closed.
+    let told = false
+    const failed = () => { if (told) return; told = true; opts.toast('This PDF couldn’t be read from this device. Add the file again.'); opts.close() }
+    Object.defineProperty(host, 'pdf', { get: await pdfSource(blob, failed), enumerable: true })
     return { host, cleanup: () => {} }
   }
+  const bytes = new Uint8Array(await blob.arrayBuffer())
   if (rec.format === 'cbz') {
     const all = unzipSync(bytes)
     const urls = comicPages(all).map((p) => URL.createObjectURL(imageBlob(p, all[p])))

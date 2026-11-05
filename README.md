@@ -107,7 +107,7 @@ npm test
 
 Apache-2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute it or build on it, keep the NOTICE attribution.
 
-Bundled in the built app: pdf.js (`pdfjs-dist`, Apache-2.0, Mozilla Foundation), React and React DOM (MIT, Meta Platforms and affiliates), and fflate (MIT, Arjun Barrett). In the installers only, not in the zip: Electron (MIT), which bundles Chromium and FFmpeg, whose licences ship with every installed copy in `LICENSE.electron.txt` and `LICENSES.chromium.html`.
+Bundled in the built app: pdf.js (`pdfjs-dist`, Apache-2.0, Mozilla Foundation) with its image decoders (OpenJPEG, BSD-2-Clause; PDFium's JBIG2 decoder, BSD-3-Clause; qcms, MIT; each licence beside it in `assets/pdfjs-<version>/`), React and React DOM (MIT, Meta Platforms and affiliates), and fflate (MIT, Arjun Barrett). In the installers only, not in the zip: Electron (MIT), which bundles Chromium and FFmpeg, whose licences ship with every installed copy in `LICENSE.electron.txt` and `LICENSES.chromium.html`.
 
 ## Legal
 
