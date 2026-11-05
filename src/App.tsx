@@ -124,7 +124,7 @@ export default function App() {
   const all = list || []
   const kinds = (['epub', 'pdf', 'cbz'] as const).filter((k) => all.some((b) => b.format === k))
   const shown = all.filter((b) => (kind === 'all' || b.format === kind) && (!q || `${b.title} ${b.author || ''}`.toLowerCase().includes(q.toLowerCase())))
-    .sort(sort === 'title' ? (a, b) => a.title.localeCompare(b.title) : sort === 'author' ? (a, b) => (a.author || '~').localeCompare(b.author || '~') || a.title.localeCompare(b.title)
+    .sort(sort === 'title' ? (a, b) => a.title.localeCompare(b.title) : sort === 'author' ? (a, b) => +!a.author - +!b.author || (a.author || '').localeCompare(b.author || '') || a.title.localeCompare(b.title) // no author last
       : sort === 'added' ? (a, b) => b.added - a.added : (a, b) => Math.max(b.opened, b.added) - Math.max(a.opened, a.added))
   // The book being read: opened most recently and neither new nor finished.
   const current = all.filter((b) => (b.opened || b.position) && progress(b) > 0 && progress(b) < 100).sort((a, b) => b.opened - a.opened)[0]
