@@ -125,7 +125,7 @@ export default function App() {
     .sort(sort === 'title' ? (a, b) => a.title.localeCompare(b.title) : sort === 'author' ? (a, b) => (a.author || '~').localeCompare(b.author || '~') || a.title.localeCompare(b.title)
       : sort === 'added' ? (a, b) => b.added - a.added : (a, b) => Math.max(b.opened, b.added) - Math.max(a.opened, a.added))
   // The book being read: opened most recently and neither new nor finished.
-  const current = all.filter((b) => b.opened && progress(b) > 0 && progress(b) < 100).sort((a, b) => b.opened - a.opened)[0]
+  const current = all.filter((b) => (b.opened || b.position) && progress(b) > 0 && progress(b) < 100).sort((a, b) => b.opened - a.opened)[0]
   return (
     <div className="wr">
       <header className="wr-top">
@@ -190,7 +190,20 @@ export default function App() {
 
 const KIND_NAMES = { all: 'All', epub: 'Books', pdf: 'PDFs', cbz: 'Comics' }
 const FORMAT_NAMES = { epub: 'EPUB', pdf: 'PDF', cbz: 'Comic' }
-const progress = (b: BookRec) => (b.total ? Math.min(100, Math.round((b.position / b.total) * 100)) : 0)
+// How far through a book is, as its reader counts it. A PDF or comic is saved at the page on
+// screen, so its last page is the end. A book counts words, and its reader's last page starts
+// a little before them, so its last chapter with less than two pages' worth left is the end.
+function progress(b: BookRec) {
+  if (!b.total || (!b.opened && !b.position)) return 0 // never opened (a lost save may have dropped when it was)
+  const page = Math.max(0, Math.min(b.total - 1, Math.floor(b.position)))
+  const sum = (l: number[]) => l.reduce((x, y) => x + y, 0)
+  const all = b.words?.length === b.total ? sum(b.words) : -1
+  if (b.format !== 'epub' || all === 0) return Math.round(((page + 1) / b.total) * 100) // pages, or a book of pictures
+  if (all < 0) return Math.min(99, Math.round((b.position / b.total) * 100)) // not opened since words were kept
+  const left = b.words![page] * (1 - (b.position - page))
+  if (page === b.total - 1 && left < 600) return 100
+  return Math.min(99, Math.round(((sum(b.words!.slice(0, page)) + b.words![page] - left) / all) * 100))
+}
 const IconAdd = ({ size = 20 }: { size?: number }) => <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z" /></svg>
 
 // A cover from the book's stored picture, or its title on a coloured card.

@@ -174,6 +174,7 @@ export async function openBook(rec: BookRec, opts: { toast: (m: string) => void;
     return { host, cleanup: () => urls.forEach((u) => URL.revokeObjectURL(u)) }
   }
   const served = await serveEpub(rec.key, readEpub(bytes))
+  if (!rec.words) books.patch(rec.key, { words: served.info.words })
   host.epub = served
   return { host, cleanup: served.close }
 }
