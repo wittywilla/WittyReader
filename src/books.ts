@@ -2,6 +2,7 @@ import { strFromU8, unzipSync } from 'fflate'
 import type { Ann, Definition, ReaderHost } from '@wittywilla/wittyink'
 import { readEpub, serveEpub } from './epub'
 import { books, fileKey, files, notes, type BookRec } from './store'
+import { zipFile, zipFiles } from './zip'
 
 // Adding books to the library and opening them with a host that keeps the
 // place and notes on this device.
@@ -12,10 +13,22 @@ const natural = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base
 const baseName = (name: string) => name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim()
 
 // A comic's pages in reading order (images, without system files).
-function comicPages(all: Record<string, Uint8Array>) {
-  return Object.keys(all).filter((n) => IMG.test(n) && !n.startsWith('__MACOSX/') && !n.split('/').pop()!.startsWith('.')).sort(natural.compare)
+function comicPages(names: string[]) {
+  return names.filter((n) => IMG.test(n) && !n.startsWith('__MACOSX/') && !n.split('/').pop()!.startsWith('.')).sort(natural.compare)
 }
-const imageBlob = (name: string, bytes: Uint8Array) => new Blob([bytes as BlobPart], { type: IMG_TYPE[name.split('.').pop()!.toLowerCase()] || 'image/jpeg' })
+const imageType = (name: string) => IMG_TYPE[name.split('.').pop()!.toLowerCase()] || 'image/jpeg'
+const imageBlob = (name: string, bytes: Uint8Array) => new Blob([bytes as BlobPart], { type: imageType(name) })
+
+// A comic's files, each read from the stored file when it's wanted (src/zip.ts).
+async function comicFiles(blob: Blob): Promise<{ names: string[]; get(name: string): Promise<Blob> }> {
+  const list = await zipFiles(blob)
+  if (list) {
+    const by = new Map(list.map((f) => [f.name, f]))
+    return { names: [...by.keys()], get: (n) => zipFile(blob, by.get(n)!, imageType(n)) }
+  }
+  const all = unzipSync(new Uint8Array(await blob.arrayBuffer())) // a ZIP64 comic, unpacked as before
+  return { names: Object.keys(all), get: async (n) => imageBlob(n, all[n]) }
+}
 
 // A small cover picture for the library (300 px wide), so the grid stays light.
 async function thumb(src: Blob | HTMLCanvasElement): Promise<Blob | undefined> {
@@ -95,13 +108,14 @@ export async function importFile(file: File): Promise<BookRec> {
       rec.total = book.spine.length
       if (book.cover) rec.cover = await thumb(imageBlob(book.cover, book.files[book.cover]))
     } else {
-      const all = unzipSync(bytes)
-      const pages = comicPages(all)
+      const comic = await comicFiles(file)
+      const pages = comicPages(comic.names)
       if (!pages.length) throw new Error(`${file.name} has no pages to read.`)
       rec.format = 'cbz'
       rec.total = pages.length
-      Object.assign(rec, comicInfo(all))
-      rec.cover = await thumb(imageBlob(pages[0], all[pages[0]]))
+      const info = comic.names.find((n) => n.split('/').pop()!.toLowerCase() === 'comicinfo.xml')
+      if (info) Object.assign(rec, comicInfo(await (await comic.get(info)).text()))
+      rec.cover = await thumb(await comic.get(pages[0]))
     }
   } else {
     throw new Error(`${file.name} is not a book WittyReader can open (EPUB, PDF or CBZ).`)
@@ -112,10 +126,8 @@ export async function importFile(file: File): Promise<BookRec> {
 }
 
 // Title, writer, year and reading direction from a comic's ComicInfo.xml.
-function comicInfo(all: Record<string, Uint8Array>): Partial<BookRec> {
-  const name = Object.keys(all).find((n) => n.split('/').pop()!.toLowerCase() === 'comicinfo.xml')
-  if (!name) return {}
-  const d = new DOMParser().parseFromString(strFromU8(all[name]), 'application/xml')
+function comicInfo(xml: string): Partial<BookRec> {
+  const d = new DOMParser().parseFromString(xml, 'application/xml')
   const get = (t: string) => d.getElementsByTagName(t)[0]?.textContent?.trim() || ''
   const out: Partial<BookRec> = {}
   const series = get('Series'), num = get('Number'), title = get('Title')
@@ -166,13 +178,15 @@ export async function openBook(rec: BookRec, opts: { toast: (m: string) => void;
     Object.defineProperty(host, 'pdf', { get: await pdfSource(blob, failed), enumerable: true })
     return { host, cleanup: () => {} }
   }
-  const bytes = new Uint8Array(await blob.arrayBuffer())
   if (rec.format === 'cbz') {
-    const all = unzipSync(bytes)
-    const urls = comicPages(all).map((p) => URL.createObjectURL(imageBlob(p, all[p])))
+    // Pages one at a time: a stored page is only a reference to its part of the file.
+    const comic = await comicFiles(blob)
+    const urls: string[] = []
+    for (const p of comicPages(comic.names)) urls.push(URL.createObjectURL(await comic.get(p)))
     host.comic = { pages: urls.length, pageUrl: (n) => urls[n] }
     return { host, cleanup: () => urls.forEach((u) => URL.revokeObjectURL(u)) }
   }
+  const bytes = new Uint8Array(await blob.arrayBuffer())
   const served = await serveEpub(rec.key, readEpub(bytes))
   if (!rec.words) books.patch(rec.key, { words: served.info.words })
   host.epub = served
