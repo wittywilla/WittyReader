@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // Which books a command line names: what the system passes when someone opens a file with the app.
 // Everything else on the line is left alone, and only regular files of the kinds it reads count.
 const fs = require('fs')

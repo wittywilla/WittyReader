@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* Copyright (C) 2026 WittyWilla and contributors */
 /* WittyReader's library. The reading screens come from the plugins. */
 html, body, #root { height: 100%; }
 body { background: radial-gradient(1200px 600px at 10% -10%, rgba(139,108,255,.10), transparent 60%), var(--bg); background-attachment: fixed; }

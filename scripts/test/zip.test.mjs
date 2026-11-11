@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // src/zip.ts against ZIPs made by fflate: what it lists and what it reads back.
 //   npm test
 import assert from 'node:assert'

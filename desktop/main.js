@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // WittyReader for Windows, macOS and Linux: one window showing the same app as the web version,
 // from its built files, through an address of its own. The page has no access to Node, and the
 // only thing it can reach outside the app is the dictionary, which the reader has to turn on.

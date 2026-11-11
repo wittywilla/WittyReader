@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // Writes three tiny books with made-up contents: one EPUB, one PDF and one CBZ.
 //
 //   node make-books.mjs <folder>

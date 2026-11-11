@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 import { copyFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, type Plugin } from 'vite'

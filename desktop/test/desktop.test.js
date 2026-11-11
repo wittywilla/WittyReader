@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 const assert = require('node:assert')
 const fs = require('node:fs')
 const os = require('node:os')

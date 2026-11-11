@@ -109,7 +109,7 @@ npm test
 
 ## Licence
 
-Apache-2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute it or build on it, keep the NOTICE attribution.
+GNU GPL v3.0 (or later): see [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute it or build on it, please keep the NOTICE attribution. The Witty plugins it is built from are under the GNU AGPL v3.0 (or later).
 
 Bundled in the built app: pdf.js (`pdfjs-dist`, Apache-2.0, Mozilla Foundation) with its image decoders (OpenJPEG, BSD-2-Clause; PDFium's JBIG2 decoder, BSD-3-Clause; qcms, MIT; each licence beside it in `assets/pdfjs-<version>/`), React and React DOM (MIT, Meta Platforms and affiliates), and fflate (MIT, Arjun Barrett). In the installers only, not in the zip: Electron (MIT), which bundles Chromium and FFmpeg, whose licences ship with every installed copy in `LICENSE.electron.txt` and `LICENSES.chromium.html`.
 
@@ -134,5 +134,5 @@ To release:
    suffix, such as `v1.2.0-beta`, is published as a prerelease.
 3. Watch the *Actions* tab. Nothing is signed yet, so Windows and macOS warn about the installers: see [Installing and removing](wiki/Installing-and-removing.md).
 
-Licensed under Apache-2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Licensed under GPL-3.0-or-later: see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 <!-- /module-kit -->

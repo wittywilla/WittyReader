@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // How the app's own address maps to its files. Nothing here needs Electron, so it can be tested alone.
 const path = require('path')
 

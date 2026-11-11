@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import WittyComics from '@wittywilla/wittycomics'
 import WittyEbook from '@wittywilla/wittyebook'
@@ -343,7 +345,7 @@ function Settings({ dictionary, setDictionary, importNotes, close }: { dictionar
           </div>
         </div>
         <p className="wr-about">
-          WittyReader {VERSION}, developed by WittyWilla · Apache License 2.0 · <a href="https://github.com/wittywilla/WittyReader" target="_blank" rel="noreferrer">Source and licences</a> · Part of the <a href="https://github.com/wittywilla/WittyMediaServer" target="_blank" rel="noreferrer">WittyMediaServer</a> family
+          WittyReader {VERSION}, developed by WittyWilla · GNU GPL v3.0 or later · <a href="https://github.com/wittywilla/WittyReader" target="_blank" rel="noreferrer">Source and licences</a> · Part of the <a href="https://github.com/wittywilla/WittyMediaServer" target="_blank" rel="noreferrer">WittyMediaServer</a> family
         </p>
       </section>
     </div>

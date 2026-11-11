@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 import { inflateSync, strFromU8 } from 'fflate'
 
 // The files in a ZIP (a comic), found from its directory at the end and read

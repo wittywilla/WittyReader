@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 import type { Ann } from '@wittywilla/wittyink'
 
 // WittyReader keeps everything on the device, in the browser's own database

@@ -6,7 +6,7 @@
   "description": "Read and annotate books, PDFs and comics on your own device.",
   "author": "WittyWilla",
   "homepage": "https://github.com/wittywilla/WittyReader",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
   "main": "main.js",
   "private": true,
   "scripts": {

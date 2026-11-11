@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // WittyReader's service worker. It serves the unpacked files of the open
 // EPUB (stored in Cache Storage with a strict Content-Security-Policy when
 // the book is opened), and keeps the app itself working offline after the

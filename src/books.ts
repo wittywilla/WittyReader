@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 import { strFromU8, unzipSync } from 'fflate'
 import type { Ann, Definition, ReaderHost } from '@wittywilla/wittyink'
 import { readEpub, serveEpub } from './epub'

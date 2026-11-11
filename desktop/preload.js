@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 WittyWilla and contributors
 // All the app's pages can do with the desktop app: be told about books opened from the system.
 // They get a name and a one-time address, never a path, and can't ask for anything.
 const { contextBridge, ipcRenderer } = require('electron')
