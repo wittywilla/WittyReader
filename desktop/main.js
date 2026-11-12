@@ -3,7 +3,7 @@
 // WittyReader for Windows, macOS and Linux: one window showing the same app as the web version,
 // from its built files, through an address of its own. The page has no access to Node, and the
 // only thing it can reach outside the app is the dictionary, which the reader has to turn on.
-const { app, BrowserWindow, Menu, protocol, session, shell } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, protocol, session, shell } = require('electron')
 const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
@@ -96,23 +96,38 @@ function lockDown() {
   })
 }
 
+// The page's theme colour, painted behind it, so opening or resizing the window shows no flash
+// of another colour. Only a plain #rrggbb is taken from the page.
+const HEX = /^#[0-9a-f]{6}$/i
+let background = '#0f1115'
+
 function savedSize() {
+  let size = { width: 1200, height: 800 }
   try {
-    const { width, height } = JSON.parse(fs.readFileSync(SIZE_FILE(), 'utf8'))
-    if (width >= 480 && height >= 360 && width <= 16384 && height <= 16384) return { width, height }
+    const kept = JSON.parse(fs.readFileSync(SIZE_FILE(), 'utf8'))
+    if (kept.width >= 480 && kept.height >= 360 && kept.width <= 16384 && kept.height <= 16384) size = { width: kept.width, height: kept.height }
+    if (typeof kept.background === 'string' && HEX.test(kept.background)) background = kept.background
   } catch { /* the first run, or a damaged file */ }
-  return { width: 1200, height: 800 }
+  return size
 }
 
 function saveSize() {
-  if (!win || win.isMaximized() || win.isFullScreen()) return
-  const [width, height] = win.getSize()
-  try { fs.writeFileSync(SIZE_FILE(), JSON.stringify({ width, height })) } catch { /* it just opens at the usual size */ }
+  if (!win) return
+  let size = {}
+  try { size = JSON.parse(fs.readFileSync(SIZE_FILE(), 'utf8')) } catch { /* nothing kept yet */ }
+  if (!win.isMaximized() && !win.isFullScreen()) { const [width, height] = win.getSize(); size = { width, height } }
+  try { fs.writeFileSync(SIZE_FILE(), JSON.stringify({ width: size.width, height: size.height, background })) } catch { /* it just opens at the usual size */ }
 }
+
+ipcMain.on('background', (event, colour) => {
+  if (!win || event.sender !== win.webContents || !isOurs(event.senderFrame?.url || '') || typeof colour !== 'string' || !HEX.test(colour)) return
+  background = colour
+  win.setBackgroundColor(colour)
+})
 
 function createWindow() {
   win = new BrowserWindow({
-    ...savedSize(), minWidth: 480, minHeight: 360, backgroundColor: '#0f1115', title: 'WittyReader', show: false,
+    ...savedSize(), minWidth: 480, minHeight: 360, backgroundColor: background, title: 'WittyReader', show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, spellcheck: false,

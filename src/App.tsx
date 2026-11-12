@@ -6,6 +6,7 @@ import WittyEbook from '@wittywilla/wittyebook'
 import { HostContext, IconClose, IconMore, IconSearch, IconSettings, type ReaderHost } from '@wittywilla/wittyink'
 import { exportNotesFile, importFile, importNotesFile, openBook } from './books'
 import { books, type BookRec } from './store'
+import { chooseTheme, savedTheme, SYSTEM, THEMES } from './theme'
 
 // WittyReader: a library of books, PDFs and comics kept on this device, read
 // with the WittyEbook, WittyPDF and WittyComics plugins. Nothing leaves the
@@ -14,7 +15,7 @@ import { books, type BookRec } from './store'
 const WittyPDF = lazy(() => import('@wittywilla/wittypdf'))
 const DICT_KEY = 'wittyreader.dictionary'
 const ACCEPT = '.epub,.pdf,.cbz,application/epub+zip,application/pdf'
-const VERSION = '0.1.2'
+const VERSION = __APP_VERSION__
 const SORT_KEY = 'wittyreader.sort'
 
 export default function App() {
@@ -323,7 +324,7 @@ function Settings({ dictionary, setDictionary, importNotes, close }: { dictionar
   }, [])
   const trap = (e: React.KeyboardEvent) => {
     if (e.key !== 'Tab') return
-    const all = Array.from(box.current?.querySelectorAll<HTMLElement>('input, button, a[href]') || [])
+    const all = Array.from(box.current?.querySelectorAll<HTMLElement>('input:not([type=radio]), input[type=radio]:checked, button, a[href]') || [])
     const edge = e.shiftKey ? all[0] : all[all.length - 1]
     if (document.activeElement === edge) { e.preventDefault(); (e.shiftKey ? all[all.length - 1] : all[0])?.focus() }
   }
@@ -336,6 +337,7 @@ function Settings({ dictionary, setDictionary, importNotes, close }: { dictionar
             <span><b>Look up words online</b><small>Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.</small></span>
             <input type="checkbox" role="switch" checked={dictionary} onChange={(e) => setDictionary(e.target.checked)} />
           </label>
+          <ThemePicker />
           <div className="wr-set-row">
             <span><b>Notes from another device</b><small>Adds notes exported from WittyReader elsewhere to the matching books here.</small></span>
             <button className="btn sm" onClick={importNotes}>Import notes…</button>
@@ -349,5 +351,29 @@ function Settings({ dictionary, setDictionary, importNotes, close }: { dictionar
         </p>
       </section>
     </div>
+  )
+}
+
+// The look of the library and the readers' menus: WittyMediaServer's themes, or the device's.
+function ThemePicker() {
+  const [choice, setChoice] = useState(savedTheme)
+  const pick = (id: string) => { setChoice(id); chooseTheme(id) }
+  const options = [{ id: SYSTEM, name: 'Match this device', description: 'Witty when the device is dark, Light when it is light.', scheme: 'auto', colors: {} as Record<string, string> }, ...THEMES]
+  return (
+    <fieldset className="wr-set-row wr-themes">
+      <legend><b>Look</b><small>The same themes as WittyMediaServer. Pages of a book keep their own colours, set in the reader.</small></legend>
+      <div className="wr-theme-grid">
+        {options.map((t) => (
+          <label key={t.id} className="wr-theme" title={t.description}>
+            <input type="radio" name="wr-theme" value={t.id} checked={choice === t.id} onChange={() => pick(t.id)} />
+            <span className={'wr-swatch' + (t.id === SYSTEM ? ' auto' : '')} aria-hidden="true"
+              style={t.id === SYSTEM ? undefined : { background: t.colors['--bg'], color: t.colors['--fg'], borderColor: t.colors['--bg-4'] }}>
+              {t.id !== SYSTEM && <i style={{ background: t.colors['--accent'] }} />}
+            </span>
+            <span className="wr-theme-name">{t.name}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
   )
 }

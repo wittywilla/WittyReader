@@ -20,6 +20,7 @@ const csp: Plugin = { name: 'csp', apply: 'build', transformIndexHtml: (html) =>
 // version, so a new one is never mixed with an old copy kept for offline use. The
 // script engine for PDF scripts stays behind: PDF scripts never run here. Their
 // licences go with them.
+const appVersion = String(JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version)
 const pdfVersion = String(JSON.parse(readFileSync(new URL('./node_modules/pdfjs-dist/package.json', import.meta.url), 'utf8')).version)
 const pdfAssets: Plugin = {
   name: 'pdf-assets', apply: 'build',
@@ -37,7 +38,7 @@ export default defineConfig(({ command }) => ({
   base: './',
   plugins: [react(), csp, pdfAssets],
   // While developing, the same files straight from node_modules.
-  define: { __PDF_ASSETS__: JSON.stringify(command === 'build' ? `assets/pdfjs-${pdfVersion}/` : '/node_modules/pdfjs-dist/') },
+  define: { __APP_VERSION__: JSON.stringify(appVersion), __PDF_ASSETS__: JSON.stringify(command === 'build' ? `assets/pdfjs-${pdfVersion}/` : '/node_modules/pdfjs-dist/') },
   resolve: { dedupe: ['react', 'react-dom', 'pdfjs-dist'] },
   // The plugins ship as TypeScript source: compile them like the app's own files.
   optimizeDeps: { exclude: ['@wittywilla/wittyink', '@wittywilla/wittyebook', '@wittywilla/wittypdf', '@wittywilla/wittycomics'] },

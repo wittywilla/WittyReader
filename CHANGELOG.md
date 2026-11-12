@@ -3,7 +3,19 @@
 What changed in WittyReader, newest first. What changed before it had a repository of its own is in the
 [WittyMediaServer changelog](https://github.com/wittywilla/WittyMediaServer/blob/master/CHANGELOG.md).
 
-## 0.1.2 (not released yet)
+## 0.2.0 (not released yet)
+
+- **Themes.** Settings → Look has WittyMediaServer's themes (Witty, Light, Paper, Cinema, Evergreen, High contrast, Midnight,
+  True black), and Match this device, which is the default and follows the system between dark and light. The library, menus and
+  the readers' panels follow it, and the desktop window's own colour matches, so it doesn't flash when it opens or resizes.
+  `scripts/sync-themes.mjs` copies the colours from the server's built-in themes.
+- **Built and tested with the reader plugins 0.3.0** (WittyInk, WittyEbook, WittyPDF, WittyComics), now AGPL-3.0-or-later.
+  `scripts/dev-modules.mjs` builds against plugin checkouts beside this one, before they're released; `package-lock.json`
+  moves to their 0.3.0 commits once they are.
+- The version Settings shows comes from `package.json`, so it can't be left behind again.
+- 0.1.2 was never released: what it had is below, and comes with 0.2.0.
+
+## 0.1.2 (never released)
 
 - **Up to date with the reader plugins**, with pdf.js 6.4.299 and its image decoders, so scanned PDFs show their pictures. A PDF is
   read in pieces as you go instead of whole: opening a 96 MB comic PDF reads 7 MB to show its first page. A PDF that can't be

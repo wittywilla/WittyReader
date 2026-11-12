@@ -14,6 +14,8 @@ NOTICE file, in documentation, or in an "About" display.
 WittyReader is built from the WittyInk, WittyEbook, WittyPDF and WittyComics
 plugins (Copyright 2026 WittyWilla and contributors, GNU Affero General Public
 License v3.0 or later), which stay under that licence inside the built app.
+Its themes' colours (src/themes.json) are those of WittyMediaServer's built-in
+themes, by the same authors.
 
 Third-party components bundled in the built app:
 - pdf.js (pdfjs-dist), Copyright Mozilla Foundation - Apache License 2.0, with its

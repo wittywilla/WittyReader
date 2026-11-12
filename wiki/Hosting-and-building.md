@@ -63,9 +63,17 @@ The reader plugins come from their own repositories, through `package.json`:
 - [WittyPDF](https://github.com/wittywilla/WittyPDF)
 - [WittyComics](https://github.com/wittywilla/WittyComics)
 
+To build with plugin changes that aren't released yet, keep their checkouts beside this one and,
+after `npm ci`, run `node scripts/dev-modules.mjs` (or name another folder holding them). It copies
+them into `node_modules` without touching `package.json`; `npm ci` puts the released ones back.
+
+The themes are WittyMediaServer's. When the server's built-in themes change, run
+`node scripts/sync-themes.mjs <server checkout>` and commit `src/themes.json`.
+
 | Folder or file | What's in it |
 |---|---|
 | `src/App.tsx` | The library, settings and opening books. |
+| `src/theme.ts`, `src/themes.json` | The look: the server's themes, or one that follows the device. |
 | `src/books.ts` | Adding files (format, title, cover) and the reader host that keeps notes on the device. |
 | `src/epub.ts` | Unpacking EPUBs on the device: contents, cover, word counts, search. |
 | `src/store.ts` | The on-device database (IndexedDB): books, files and notes. |

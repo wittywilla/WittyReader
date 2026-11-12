@@ -49,3 +49,11 @@ full. **Settings** shows how much space your books and notes use.
 
 Clearing the browser's data for the site, or uninstalling the browser, removes the library. See
 [Notes and backups](Notes-and-backups).
+
+## The look
+
+**Settings → Look** has the same themes as WittyMediaServer: Witty, Light, Paper, Cinema, Evergreen,
+High contrast, Midnight and True black, and **Match this device**, the first choice, which is Witty
+while the device is dark and Light while it's light. The library, menus and the readers' panels take
+the theme. The pages of a book keep the colours you choose for reading inside the reader.
+
