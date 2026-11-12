@@ -72,7 +72,7 @@ test('every action a page carries is one the app answers', () => {
         const step = plan(a)
         assert.notEqual(step.do, 'nothing', `${id} ${n.id}: ${JSON.stringify(a)} does nothing`)
         if (a.type === 'command') { assert.ok(ops.has(a.op), a.op); assert.equal(step.do, 'request') }
-        if (a.type === 'navigate') { const r = resolve(...a.to.split('?').map((x, i) => (i ? '?' + x : x)), ROUTES); assert.ok(r, `${a.to} resolves`) }
+        if (a.type === 'navigate') { const [path, query = ''] = a.to.split('?'); const r = resolve(path, query, ROUTES); assert.ok(r, `${a.to} resolves`) }
       }
     })
   }

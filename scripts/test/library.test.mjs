@@ -9,9 +9,10 @@ const book = (o) => ({ key: o.title, title: 'T', format: 'epub', total: 10, posi
 
 test('progress counts a PDF by pages and a book by words', () => {
   assert.equal(progress(book({ format: 'pdf', total: 10, position: 4, opened: 5 })), 50)
-  assert.equal(progress(book({ format: 'epub', total: 2, position: 1, words: [100, 100], opened: 5 })), 50)
-  assert.equal(progress(book({ format: 'epub', total: 2, position: 1.99, words: [100, 100], opened: 5 })), 99)
-  assert.equal(progress(book({ format: 'epub', total: 2, position: 1.5, words: [100, 900], opened: 5 })), 100) // under two pages' worth left
+  const w = [1000, 1000, 1000]
+  assert.equal(progress(book({ format: 'epub', total: 3, position: 1, words: w, opened: 5 })), 33)
+  assert.equal(progress(book({ format: 'epub', total: 3, position: 2.2, words: w, opened: 5 })), 73)
+  assert.equal(progress(book({ format: 'epub', total: 3, position: 2.5, words: w, opened: 5 })), 100) // under two pages' worth left
   assert.equal(progress(book({ position: 0, opened: 0 })), 0)
 })
 
