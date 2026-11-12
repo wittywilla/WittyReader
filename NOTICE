@@ -29,3 +29,9 @@ Third-party components in the installers only, not in the zip of the web app:
 - Electron, Copyright Electron contributors - MIT. It bundles Chromium and FFmpeg,
   whose licences ship with every installed copy, in LICENSE.electron.txt and
   LICENSES.chromium.html.
+
+WittyMediaServer's web renderer, design-system stylesheets, themes and fonts (src/web/, public/themes/, public/fonts/)
+are copied unchanged by scripts/sync-web.mjs from WittyMediaServer (AGPL-3.0-or-later, WittyWilla and contributors;
+the fonts are SIL OFL 1.1, their licences are in public/fonts/). They keep their own licence headers. AGPL-3.0 and
+GPL-3.0 are compatible (GPL-3.0 section 13): the combined app is distributed under the terms of both, and its
+source is public.

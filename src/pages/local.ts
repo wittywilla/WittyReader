@@ -4,14 +4,14 @@ import { current, filterNotes, FORMAT_NAMES, KIND_NAMES, NOTE_KINDS, progress, S
 import { CATALOG, VERSION, type Document, type Layout, type Navigation, type Node } from '../web/sdui/types.ts'
 import { setCommandSpecs, type CommandSpec, type RouteRule } from '../web/sdui/routes.ts'
 import { card, cmd, document, grid, list, n, nav, notice, row, shelf, stack, text, button } from './doc.ts'
-import { coverPath, swatchPath } from './pictures.ts'
+import { coverPath, wirePath } from './pictures.ts'
 
 // The local page provider: the app's own data (the library, its notes, its settings) as SDUI documents of the
 // server's catalogue. `Data` is what a page is made from, read by the app (src/pages/data.ts) so this file
 // has no database in it and is tested with plain objects. See docs/SDUI-ARCHITECTURE.md.
 
 export type ThemeChoice = { id: string; name: string; description: string; scheme: string; preview: { bg?: string; surface?: string; text?: string; accent?: string }; imported?: boolean }
-export type LookChoice = { id: string; name: string; tagline: string; description: string; preview: { bg: string; surface: string; accent: string } }
+export type LookChoice = { id: string; name: string; tagline: string; description: string; theme: string; preview: { bg: string; surface: string; accent: string } }
 export type Data = {
   books: Book[]; notes: Note[]; hasCover: (key: string) => boolean
   dictionary: boolean; version: string; used?: string
@@ -74,7 +74,7 @@ function library(data: Data, q: URLSearchParams): Node[] {
     sort: { id: 'sort', label: 'Sort', value: sort, options: options(SORTS) },
     fields: kinds.length > 1 ? [{ id: 'kind', label: 'Show', value: kind === 'all' ? '' : kind, options: kinds.map((k) => ({ value: k, label: KIND_NAMES[k] })) }] : [],
   }))
-  out.push(shown.length || !search ? grid('all', 'Library', shown.map((b) => bookCard(b, data, 'all')), { cardStyle: 'book', empty: 'Nothing in your library matches.' })
+  out.push(shown.length || !search ? grid('all', '', shown.map((b) => bookCard(b, data, 'all')), { cardStyle: 'book', empty: 'Nothing in your library matches.' })
     : notice('none', `Nothing in your library matches “${search}”.`, { icon: 'search' }))
   return out
 }
@@ -92,7 +92,7 @@ function bookPage(data: Data, key: string): Node[] | null {
       actions: [
         { id: 'read', label: pct > 0 && pct < 100 ? 'Continue reading' : pct >= 100 ? 'Read again' : 'Read', icon: 'book', primary: true, action: nav(`/read/${key}`) },
         { id: 'export', label: 'Export notes', icon: 'download', action: cmd('reader.export', key) },
-        { id: 'remove', label: 'Remove from this device', icon: 'warning', action: cmd('reader.remove', key) },
+        { id: 'remove', label: 'Remove from this device', icon: 'warning', action: { ...cmd('reader.remove', key), confirm: `Remove “${b.title}” and its notes from this device?` } },
       ],
     }),
     list('notes', 'Notes in this book', notes.map((x) => noteRow(x)), { empty: 'No highlights, bookmarks or drawings yet. Make some while you read.' }),
@@ -147,28 +147,28 @@ function importPage(): Node[] {
 }
 
 const inkOn = (bg: string) => { const h = bg.replace('#', ''); const v = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) || 0); return v[0] * 0.299 + v[1] * 0.587 + v[2] * 0.114 > 150 ? '#1a1a1a' : '#f4f4f4' }
-const swatchOf = (p: { bg?: string; surface?: string; text?: string; accent?: string }) => { const bg = p.bg || '#0f1115'; return swatchPath(bg, p.surface || bg, p.text || inkOn(p.surface || bg), p.accent || '#7955ff') }
+const wireOf = (look: string, p: { bg?: string; surface?: string; text?: string; accent?: string }) => { const bg = p.bg || '#0f1115'; return wirePath(look, bg, p.surface || bg, p.text || inkOn(bg), p.accent || '#7955ff') }
 
 function pickers(data: Data): Node[] {
   const used = (id: string) => data.theme === id
   const themeCards: Node[] = [
-    card('t:auto', 'landscape', { title: 'Match this device', subtitle: 'Witty when the device is dark, Light when it is light.', kind: 'collection', icon: 'devices', badges: used('auto') ? ['In use'] : [] }, cmd('reader.theme.set', undefined, { id: 'auto' })),
-    card('t:look', 'landscape', { title: 'The Look’s own', subtitle: 'Each Look has a theme of its own.', kind: 'collection', icon: 'sparkles', badges: used('look') ? ['In use'] : [] }, cmd('reader.theme.set', undefined, { id: 'look' })),
-    ...data.themes.map((t) => card(`t:${t.id}`, 'landscape', { title: t.name, subtitle: t.description, image: { url: swatchOf(t.preview), aspect: '16/9', kind: 'backdrop' }, badges: [...(used(t.id) ? ['In use'] : []), ...(t.imported ? ['Imported'] : [])] }, cmd('reader.theme.set', undefined, { id: t.id }))),
+    card('t:auto', 'landscape', { title: 'Match this device', subtitle: 'Witty when the device is dark, Light when it is light.', kind: 'collection', icon: 'devices', badges: used('auto') ? ['Selected'] : [] }, cmd('reader.theme.set', undefined, { id: 'auto' })),
+    card('t:look', 'landscape', { title: 'The Look’s own', subtitle: 'Each Look has a theme of its own.', kind: 'collection', icon: 'sparkles', badges: used('look') ? ['Selected'] : [] }, cmd('reader.theme.set', undefined, { id: 'look' })),
+    ...data.themes.map((t) => card(`t:${t.id}`, 'landscape', { title: t.name, subtitle: t.description, image: { url: wireOf(data.look, t.preview), aspect: '16/9', kind: 'backdrop' }, badges: [...(used(t.id) ? ['Selected'] : []), ...(t.imported ? ['Imported'] : [])] }, cmd('reader.theme.set', undefined, { id: t.id }))),
   ]
-  const lookCards = data.looks.map((l) => card(`l:${l.id}`, 'landscape', { title: l.name, subtitle: `${l.tagline}. ${l.description}`, image: { url: swatchOf({ bg: l.preview.bg, surface: l.preview.surface, accent: l.preview.accent }), aspect: '16/9', kind: 'backdrop' }, badges: data.look === l.id ? ['In use'] : [] }, cmd('reader.look.set', undefined, { id: l.id })))
-  return [grid('looks', 'Look', lookCards, { cardStyle: 'landscape' }), text('looks-h', 'A Look is the finish of the app: glass, gloss and bevels, corner shape, type and how closely things are packed. Pages of a book keep their own colours, set in the reader.', 'caption'),
-    grid('themes', 'Theme', themeCards, { cardStyle: 'landscape' }), text('themes-h', 'A Theme is colour. Any Look can wear any Theme, including one you import.', 'caption')]
+  const lookCards = data.looks.map((l) => card(`l:${l.id}`, 'landscape', { title: l.name, subtitle: `${l.tagline} · ${data.themes.find((t) => t.id === l.theme)?.name || ''}`, image: { url: wireOf(l.id, l.preview), aspect: '16/9', kind: 'backdrop' }, badges: data.look === l.id ? ['Selected'] : [] }, cmd('reader.look.set', undefined, { id: l.id })))
+  return [grid('looks', 'Look', lookCards, { cardStyle: 'landscape', size: 'l' }), text('looks-h', 'A Look is the finish of the app: glass, gloss and bevels, corner shape, type and how closely things are packed. Pages of a book keep their own colours, set in the reader.', 'caption'),
+    grid('themes', 'Theme', themeCards, { cardStyle: 'landscape', size: 'l' }), text('themes-h', 'A Theme is colour. Any Look can wear any Theme, including one you import.', 'caption')]
 }
 
 function settingsPage(data: Data): Node[] {
   const imported = data.themes.filter((t) => t.imported)
   return [
-    list('reading', 'Reading', [row('dict', 'Look up words online', { subtitle: 'Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.', icon: 'globe', trailing: data.dictionary ? 'On' : 'Off', action: cmd('reader.dictionary.toggle') })]),
+    list('reading', 'Reading', [n('ListItem', 'dict', { title: 'Look up words online', subtitle: 'Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.', icon: 'globe', control: { type: 'switch', name: 'dictionary', value: data.dictionary } }, { action: cmd('reader.dictionary.toggle', undefined, { value: !data.dictionary }) })]),
     ...pickers(data),
     stack('theme-import', [button('import-theme', 'Import a theme…', cmd('reader.pick', undefined, { what: 'theme' }), { icon: 'plus' })], { direction: 'row' }),
     text('theme-import-h', 'A theme is a ZIP with theme.json and theme.css, and may hold fonts and pictures. It can set variables only, and can’t reach another site.', 'caption'),
-    ...(imported.length ? [list('imported', 'Imported themes', imported.map((t) => row(`i:${t.id}`, t.name, { subtitle: t.description, icon: 'warning', trailing: 'Remove', action: cmd('reader.theme.remove', undefined, { id: t.id }) })))] : []),
+    ...(imported.length ? [list('imported', 'Imported themes', imported.map((t) => row(`i:${t.id}`, t.name, { subtitle: t.description, icon: 'warning', trailing: 'Remove', action: { ...cmd('reader.theme.remove', undefined, { id: t.id }), confirm: `Remove the theme “${t.name}”?` } })))] : []),
     list('storage', 'Storage', [row('store', 'On this device', { subtitle: `Books and notes live in this browser on this device${data.used ? ` (${data.used})` : ''}. Clearing the browser’s site data removes them, so export notes you want to keep.`, icon: 'folder' })]),
     list('about', 'About', [
       row('ver', `WittyReader ${data.version}`, { subtitle: 'Developed by WittyWilla · GNU GPL v3.0 or later', icon: 'info' }),

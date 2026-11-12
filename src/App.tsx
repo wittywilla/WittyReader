@@ -88,8 +88,7 @@ export default function App() {
     toast,
     pick: (what) => (what === 'books' ? picker : what === 'notes' ? notesPicker : themePicker).current?.click(),
     removeBook: async (key) => {
-      const rec = await books.get(key)
-      if (!rec || !confirm(`Remove “${rec.title}” and its notes from this device?`)) return
+      if (!(await books.get(key))) return
       await books.remove(key)
       if (currentLocation().pathname.startsWith('/book/')) navigate('/', true)
       refresh()
@@ -100,13 +99,15 @@ export default function App() {
     setDictionary: () => { dictionary.current = !dictionary.current; try { localStorage.setItem(DICT_KEY, dictionary.current ? '1' : '0') } catch { /* this visit only */ } refresh() },
     setTheme: async (id) => { await chooseTheme(id); refresh() },
     setLook: async (id) => { await chooseLook(id); refresh() },
-    removeTheme: async (id) => { if (confirm('Remove this imported theme?')) { await removeImported(id); refresh() } },
+    removeTheme: async (id) => { await removeImported(id); refresh() },
     finishWelcome: () => { finishFirstRun(); navigate('/', true) },
   }), [toast, refresh])
 
   const handlers: Handlers = useMemo(() => ({
     act: (a: Action | undefined, from?: View) => {
       void from
+      // A command can ask first (docs/SDUI.md, `confirm`): it runs only on a yes.
+      if (a?.confirm && !confirm(a.confirm)) return
       const step = plan(a)
       switch (step.do) {
         case 'go': navigate(step.to); break

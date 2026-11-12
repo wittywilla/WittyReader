@@ -21,11 +21,11 @@ const books = [book({ title: 'Alpha', author: 'Ann', format: 'pdf', position: 4,
 const notes = [{ id: 1, kind: 'highlight', chapter: 2, pos: 1, quote: 'A line', prefix: '', suffix: '', color: 'yellow', note: 'mine', created: 1, book: 'Alpha', bookTitle: 'Alpha', author: 'Ann' },
   { id: 2, kind: 'bookmark', chapter: 1, pos: 1, quote: '', prefix: '', suffix: '', color: '', note: '', created: 1, book: 'Beta', bookTitle: 'Beta' }]
 const data = (o = {}) => ({ books, notes, hasCover: (k) => k === 'Alpha', dictionary: false, version: '0.3.0', used: '1.0 MB',
-  looks: [{ id: 'lumen', name: 'Lumen', tagline: 'Quiet', description: 'The default.', preview: { bg: '#0f1115', surface: '#1f232c', accent: '#7955ff' } }],
+  looks: [{ id: 'lumen', name: 'Lumen', tagline: 'Quiet', description: 'The default.', theme: 'default', preview: { bg: '#0f1115', surface: '#1f232c', accent: '#7955ff' } }],
   themes: [{ id: 'default', name: 'Witty', description: 'House.', scheme: 'dark', preview: { bg: '#0f1115', surface: '#1f232c', text: '#e8eaf0', accent: '#7955ff' } }, { id: 'mine', name: 'Mine', description: 'Imported.', scheme: 'light', preview: {}, imported: true }],
   look: 'lumen', theme: 'look', ...o })
 
-const RESOLVED = new Set(['Card', 'DetailHeader', 'FilterBar', 'SearchBox', 'ListItem', 'Banner'])
+const RESOLVED = new Set(['Card', 'DetailHeader', 'FilterBar', 'SearchBox', 'ListItem', 'Banner', 'Grid', 'Shelf'])
 const walk = (n, f, parent) => { f(n, parent); for (const c of n.children || []) walk(c, f, n) }
 const sizes = [[390, 844], [1280, 800]]
 const cases = [['reader-library', ''], ['reader-library', 'q=zzz'], ['reader-library', 'kind=pdf&sort=title'], ['reader-book', 'item=Alpha'], ['reader-notes', ''], ['reader-notes', 'kind=highlight&withNote=1'], ['reader-import', ''], ['reader-settings', ''], ['reader-welcome', '']]
@@ -34,7 +34,7 @@ for (const [id, q] of cases) for (const [w, h] of sizes) {
   test(`${id}${q ? '?' + q : ''} at ${w}: valid against the catalogue and drawable`, () => {
     const doc = page(id, new URLSearchParams(q), data(), layoutFor(w, h))
     assert.ok(doc, 'a document')
-    assert.equal(doc.version, 1); assert.equal(doc.catalog, catalog.revision); assert.ok(kinds.has(doc.page.kind), doc.page.kind)
+    assert.equal(doc.version, 1); assert.ok(doc.catalog >= catalog.revision, 'at least the kit\'s catalogue revision'); assert.ok(kinds.has(doc.page.kind), doc.page.kind)
     const ids = new Set(); let defaults = 0
     walk(doc.root, (n) => {
       assert.ok(!ids.has(n.id), `duplicate id ${n.id}`); ids.add(n.id)

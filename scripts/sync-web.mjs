@@ -31,8 +31,8 @@ const module_ = resolve(process.argv[3] || beside('WittyModule'))
 export const WEB = [
   'brandName.ts', 'brandStyle.ts', 'icons.tsx', 'ui/avatarColor.ts', 'libraryNouns.ts', 'safeLink.ts', 'themeOverrides.ts',
   'sdui/cardStyles.ts', 'sdui/device.ts', 'sdui/extras/episodeView.ts', 'sdui/focus.ts', 'sdui/gridView.ts',
-  'sdui/markdownModel.ts', 'sdui/model.ts', 'sdui/native.ts', 'sdui/patch.ts', 'sdui/playModel.ts', 'sdui/routes.ts', 'sdui/types.ts',
-  'sdui/render/DockView.tsx', 'sdui/render/components.tsx', 'sdui/render/context.tsx', 'sdui/render/icons.tsx', 'sdui/render/markdown.tsx', 'sdui/render/widgets.tsx',
+  'sdui/formsModel.ts', 'sdui/markdownModel.ts', 'sdui/model.ts', 'sdui/native.ts', 'sdui/patch.ts', 'sdui/playModel.ts', 'sdui/routes.ts', 'sdui/types.ts',
+  'sdui/render/DockView.tsx', 'sdui/render/forms.tsx', 'sdui/render/components.tsx', 'sdui/render/context.tsx', 'sdui/render/icons.tsx', 'sdui/render/markdown.tsx', 'sdui/render/widgets.tsx',
   'ui/Button.tsx', 'ui/Choice.tsx', 'ui/Dock.tsx', 'ui/Field.tsx', 'ui/KeyLegend.tsx', 'ui/Menu.tsx', 'ui/Overlay.tsx', 'ui/Scene.tsx', 'ui/Tooltip.tsx',
   'ui/backEntry.ts', 'ui/themeMaker.ts', 'ui/inputKind.ts', 'ui/inputModel.ts', 'ui/menuPlace.ts', 'ui/spatial.ts', 'ui/useInput.ts',
   // the design system's stylesheets
@@ -80,7 +80,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   writeFileSync(join(root, 'src/web/tokens.json'), tokens); hashes['src/web/tokens.json'] = sha(tokens)
   // The fourteen experiences (looks), in one file: their finish, shape, type, density and default theme.
   const exDir = join(server, 'pkg/sdui/experiences')
-  const exs = readdirSync(exDir).filter((f) => f.endsWith('.json')).map((f) => JSON.parse(readFileSync(join(exDir, f), 'utf8'))).sort((a, b) => a.order - b.order)
+  // `wire`: the layout each experience has on each form factor (docs/SDUI.md, "wire"), as the server's conformance table lists it.
+  const wires = Object.fromEntries(JSON.parse(readFileSync(join(server, 'pkg/sdui/conformance/experience-wire-table.json'), 'utf8')).experiences.map((e) => [e.id, e.wire]))
+  const exs = readdirSync(exDir).filter((f) => f.endsWith('.json')).map((f) => JSON.parse(readFileSync(join(exDir, f), 'utf8'))).map((e) => ({ ...e, wire: wires[e.id] })).sort((a, b) => a.order - b.order)
   const exBuf = Buffer.from(JSON.stringify({ $comment: 'Written by scripts/sync-web.mjs from WittyMediaServer pkg/sdui/experiences.', experiences: exs }, null, 2) + '\n')
   writeFileSync(join(root, 'src/web/experiences.json'), exBuf); hashes['src/web/experiences.json'] = sha(exBuf)
   // The device profiles the server fits a page to, as its own conformance fixtures carry them: a phone, a tablet, the web and the desktop.

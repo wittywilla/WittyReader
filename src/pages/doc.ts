@@ -2,6 +2,7 @@
 // Copyright (C) 2026 WittyWilla and contributors
 import layouts from '../web/layouts.json' with { type: 'json' }
 import { breakpoint } from '../web/sdui/device.ts'
+import { contentWidth, gridColumns } from '../web/sdui/model.ts'
 import { CATALOG, VERSION, type Action, type Document, type Layout, type Node, type PageInfo, type Props } from '../web/sdui/types.ts'
 
 // Builders for the documents the local page provider makes: the same shapes the server sends
@@ -28,11 +29,14 @@ export const row = (id: string, title: string, o: { subtitle?: string; icon?: st
   n('ListItem', id, { title, subtitle: o.subtitle, icon: o.icon, trailing: o.trailing, image: o.image, progress: o.progress, badges: o.badges }, { action: o.action })
 export const list = (id: string, title: string, items: Node[], o: { empty?: string; dense?: boolean } = {}) =>
   n('List', id, { title, dense: o.dense, empty: o.empty ? 'message' : undefined, emptyText: o.empty }, { children: items, state: !items.length && o.empty ? 'empty' : undefined })
-export const grid = (id: string, title: string, cards: Node[], o: { cardStyle?: string; empty?: string } = {}) =>
-  n('Grid', id, { title, cardStyle: o.cardStyle, empty: o.empty ? 'message' : undefined, emptyText: o.empty }, { children: cards, state: !cards.length && o.empty ? 'empty' : undefined })
+export const grid = (id: string, title: string, cards: Node[], o: { cardStyle?: string; empty?: string; size?: 's' | 'm' | 'l' } = {}) =>
+  n('Grid', id, { title, cardStyle: o.cardStyle, cardSize: o.size, empty: o.empty ? 'message' : undefined, emptyText: o.empty }, { children: cards, state: !cards.length && o.empty ? 'empty' : undefined })
 export const shelf = (id: string, title: string, cards: Node[], o: { cardStyle?: string; seeAll?: 'never' } = {}) =>
   n('Shelf', id, { title, cardStyle: o.cardStyle, seeAll: o.seeAll || 'never', peek: true }, { children: cards })
-export const card = (id: string, style: string, p: Props, action?: Action) => n('Card', id, { style, ...p }, { action })
+// The shape each card style is drawn in (the catalogue's `cardStyles`), which the renderer reads from the card.
+const SHAPE: Record<string, string> = { poster: 'poster', book: 'poster', plate: 'poster', game: 'poster', landscape: 'landscape', progress: 'landscape', episode: 'landscape', channel: 'landscape', tile: 'landscape', block: 'landscape', logo: 'landscape',
+  square: 'square', album: 'square', photo: 'square', circle: 'circle', person: 'circle', chip: 'chip' }
+export const card = (id: string, style: string, p: Props, action?: Action) => n('Card', id, { style, shape: SHAPE[style] || 'poster', ...p }, { action })
 
 /** The device profile a page is fitted to: the server's own for a phone, a tablet, the web or the desktop, at this window. */
 export function layoutFor(width: number, height: number, o: { touch?: boolean; desktopShell?: boolean; reducedMotion?: boolean } = {}): Layout {
@@ -67,8 +71,26 @@ export function assignFocus(root: Node): void {
   if (!have) { const find = (x: Node): Node | undefined => (x.focus ? x : x.children?.map(find).find(Boolean)); const f = find(root); if (f?.focus) f.focus.default = true }
 }
 
+/** What the server works out for a row or grid from the device profile: its card's size and, for a grid, its columns. */
+function fit(x: Node, l: Layout) {
+  if (x.type === 'Shelf' || x.type === 'Grid') {
+    const style = (x.props?.cardStyle as string) || (x.children?.[0]?.props?.style as string) || 'poster'
+    const m = l.cards?.[style]
+    const w = m?.width?.[(x.props?.cardSize as string) || 'm'] || 0
+    if (m && w) {
+      const [a, b] = (m.aspect || '').split('/').map(Number)
+      const props = x.props || (x.props = {})
+      props.cardStyle = style
+      props.card = { aspect: m.aspect, shape: m.shape, width: w, height: a && b ? Math.round((w * b) / a) : w }
+      if (x.type === 'Grid') props.columns = gridColumns(l, w, contentWidth(l), 0)
+    }
+  }
+  for (const c of x.children || []) fit(c, l)
+}
+
 export function document(page: PageInfo, layout: Layout, title: string, children: Node[]): Document {
   const root: Node = { type: 'Page', id: 'page', props: { title, density: layout.density || 'comfortable' }, children }
+  fit(root, layout)
   assignFocus(root)
   return { version: VERSION, catalog: CATALOG, page, layout, root, meta: { source: 'config', generatedAt: new Date().toISOString(), ttlSeconds: 0 } }
 }

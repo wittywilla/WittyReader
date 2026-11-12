@@ -42,3 +42,6 @@ html, body, #root { height: 100%; }
   .wr-hide-sm { display: none; }
   .wr-main { padding: 18px 14px 48px; }
 }
+
+/* A card whose action is a command (choose this Look) is a button, not a link: it wears no button face. */
+button.card, button.sdui-person, button.sdui-image-link { background: none; border: 0; padding: 0; text-align: inherit; }

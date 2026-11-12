@@ -16,10 +16,11 @@ export async function loadData(version: string): Promise<Data> {
   for (const b of bs) if (b.cover) { registerCover(b.key, b.cover); covered.add(b.key) }
   const title = new Map(bs.map((b) => [b.key, b]))
   const all: Note[] = ns.filter((x) => title.has(x.book)).map((x) => ({ ...x, bookTitle: title.get(x.book)!.title, author: title.get(x.book)!.author }))
-  const used = await navigator.storage?.estimate?.().then((e) => `${((e.usage || 0) / 1048576).toFixed(1)} MB`).catch(() => '')
+  // The figure is a courtesy: a browser that is slow to give it doesn't hold the page up.
+  const used = await Promise.race([navigator.storage?.estimate?.(), new Promise<undefined>((r) => setTimeout(r, 400))]).then((e) => (e ? `${((e.usage || 0) / 1048576).toFixed(1)} MB` : '')).catch(() => '')
   return {
     books: bs, notes: all, hasCover: (k) => covered.has(k), dictionary: dictionaryOn(), version, used: used || undefined,
-    looks: EXPERIENCES.map((e) => ({ id: e.id, name: e.name, tagline: e.tagline, description: e.description, preview: e.preview })),
+    looks: EXPERIENCES.map((e) => ({ id: e.id, name: e.name, tagline: e.tagline, description: e.description, theme: e.theme, preview: e.preview })),
     themes: themes(), look: savedLook(), theme: savedTheme(),
   }
 }

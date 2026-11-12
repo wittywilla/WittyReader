@@ -47,7 +47,59 @@
         "surface": "#1f232c",
         "accent": "#7955ff"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "rail",
@@ -96,6 +148,58 @@
         "bg": "#120e0a",
         "surface": "#261d14",
         "accent": "#d98a1c"
+      },
+      "wire": {
+        "desktop": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "side",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "banner",
+          "cards": "plate",
+          "brand": "top",
+          "finish": "flat"
+        }
       }
     },
     {
@@ -148,7 +252,59 @@
         "surface": "#18233b",
         "accent": "#2f6fed"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "aero",
@@ -197,7 +353,59 @@
         "surface": "#e7f6ff",
         "accent": "#1e9be0"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "gloss",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "gloss"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "gloss"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "gloss"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "gloss",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "gloss"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "gloss"
+        },
+        "web": {
+          "nav": "top",
+          "style": "gloss",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "gloss"
+        }
+      }
     },
     {
       "id": "classic",
@@ -245,7 +453,62 @@
         "surface": "#1f232c",
         "accent": "#7955ff"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "side",
+          "open": true,
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "side",
+          "open": true,
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "side",
+          "open": true,
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "classicCable",
@@ -296,7 +559,59 @@
         "surface": "#0f2bb8",
         "accent": "#ffd84a"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "cable",
+          "home": "list",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "cable",
+          "home": "list",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "cable",
+          "home": "list",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "cable",
+          "home": "list",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "classicSatellite",
@@ -345,7 +660,59 @@
         "surface": "#1f3540",
         "accent": "#ff8a1f"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "bevel",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "bevel"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "bevel"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "bevel"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "bevel",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "bevel"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "bevel",
+          "home": "hero",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "bevel"
+        },
+        "web": {
+          "nav": "top",
+          "style": "bevel",
+          "home": "hero",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "bevel"
+        }
+      }
     },
     {
       "id": "compact",
@@ -395,7 +762,59 @@
         "surface": "#151515",
         "accent": "#4da3ff"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "side",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "list",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "paper",
@@ -444,7 +863,59 @@
         "surface": "#e6dccb",
         "accent": "#b4491f"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "under",
+          "home": "banner",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "banner",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "top",
+          "style": "under",
+          "home": "banner",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "under",
+          "home": "banner",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "under",
+          "home": "banner",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "under",
+          "home": "banner",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "marquee",
@@ -493,7 +964,59 @@
         "surface": "#2a1a1a",
         "accent": "#e0a030"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "pill",
+          "home": "carousel",
+          "cards": "poster",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "crossbar",
@@ -542,7 +1065,59 @@
         "surface": "#153027",
         "accent": "#3ddc84"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "none",
+          "style": "crossbar",
+          "home": "cross",
+          "cards": "landscape",
+          "brand": "centre",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "cross",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "cross",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "none",
+          "style": "crossbar",
+          "home": "cross",
+          "cards": "landscape",
+          "brand": "centre",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "none",
+          "style": "crossbar",
+          "home": "cross",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "centre",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "none",
+          "style": "crossbar",
+          "home": "cross",
+          "cards": "landscape",
+          "brand": "centre",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "bigpicture",
@@ -594,7 +1169,59 @@
         "surface": "#1a1a1a",
         "accent": "#ffd84a"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "left",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "top",
+          "style": "pill",
+          "home": "tiles",
+          "cards": "landscape",
+          "brand": "left",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "dashboard",
@@ -643,7 +1270,59 @@
         "surface": "#1b2430",
         "accent": "#22c3b8"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tv": {
+          "nav": "side",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "web": {
+          "nav": "rail",
+          "style": "pill",
+          "home": "widgets",
+          "cards": "landscape",
+          "brand": "top",
+          "finish": "flat"
+        }
+      }
     },
     {
       "id": "retro",
@@ -694,7 +1373,59 @@
         "surface": "#0000a8",
         "accent": "#ffff00"
       },
-      "navExpand": ""
+      "navExpand": "",
+      "wire": {
+        "desktop": {
+          "nav": "top",
+          "style": "tele",
+          "home": "list",
+          "cards": "block",
+          "brand": "left",
+          "finish": "crt"
+        },
+        "headset": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "block",
+          "dock": true,
+          "brand": "top",
+          "finish": "flat"
+        },
+        "phone": {
+          "nav": "bottom",
+          "style": "pill",
+          "home": "list",
+          "cards": "block",
+          "brand": "top",
+          "finish": "flat"
+        },
+        "tablet": {
+          "nav": "top",
+          "style": "tele",
+          "home": "list",
+          "cards": "block",
+          "brand": "left",
+          "finish": "crt"
+        },
+        "tv": {
+          "nav": "top",
+          "style": "tele",
+          "home": "list",
+          "cards": "block",
+          "dock": true,
+          "brand": "left",
+          "finish": "crt"
+        },
+        "web": {
+          "nav": "top",
+          "style": "tele",
+          "home": "list",
+          "cards": "block",
+          "brand": "left",
+          "finish": "crt"
+        }
+      }
     }
   ]
 }

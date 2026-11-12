@@ -3,6 +3,8 @@
 // Pictures of a standalone app have no server address. A page's cards name them as
 // `/api/local/...` (the renderer takes only /api/ paths); this answers each with a URL the
 // browser can draw: a cover kept on the device as an object URL, or a drawn swatch of a theme.
+import experiences from '../web/experiences.json' with { type: 'json' }
+import { wireUrl, type Wire } from './wire.ts'
 
 const covers = new Map<string, string>()
 
@@ -22,7 +24,15 @@ export function swatch(bg: string, surface: string, text: string, accent: string
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg)
 }
 
+export const wirePath = (look: string, bg: string, surface: string, text: string, accent: string) => `/api/local/wire/${look}/${[bg, surface, text, accent].map((c) => c.replace('#', '')).join('-')}`
+
 export function pictureUrl(path: string): string {
+  const w = /^\/api\/local\/wire\/([A-Za-z]+)\/([0-9a-fA-F-]+)$/.exec(path)
+  if (w) {
+    const wire = (experiences.experiences as { id: string; wire?: Record<string, Wire> }[]).find((e) => e.id === w[1])?.wire?.desktop
+    const c = w[2].split('-').map((x) => '#' + x)
+    return wire && c.length === 4 ? wireUrl(wire, { bg: c[0], surface: c[1], text: c[2], accent: c[3] }) : ''
+  }
   const m = /^\/api\/local\/(cover|swatch)\/(.+)$/.exec(path)
   if (!m) return path
   if (m[1] === 'cover') return covers.get(decodeURIComponent(m[2])) || ''

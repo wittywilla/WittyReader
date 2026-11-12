@@ -936,6 +936,12 @@
           },
           "search": {
             "visible": true
+          },
+          "statusBar": {
+            "visible": false
+          },
+          "systemDock": {
+            "visible": false
           }
         }
       }
