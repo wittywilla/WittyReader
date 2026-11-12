@@ -5,6 +5,7 @@ import type { Ann, Definition, ReaderHost } from '@wittywilla/wittyink'
 import { readEpub, serveEpub } from './epub'
 import { books, fileKey, files, notes, type BookRec } from './store'
 import { zipFile, zipFiles } from './zip'
+import { getSettings, saveSettings } from './modules/settings'
 
 // Adding books to the library and opening them with a host that keeps the
 // place and notes on this device.
@@ -172,6 +173,8 @@ export async function openBook(rec: BookRec, opts: { toast: (m: string) => void;
     define: opts.dictionary ? lookUp : undefined,
     toast: opts.toast,
     close: opts.close,
+    // The readers' choices (the modules' sdui.json settings) are kept on this device: see src/modules.
+    settings: { get: getSettings, save: saveSettings },
   }
   if (rec.format === 'pdf') {
     // pdf.js has no way to hear that a piece couldn't be read, so the reader is told and the book closed.

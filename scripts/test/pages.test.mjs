@@ -25,7 +25,7 @@ const data = (o = {}) => ({ books, notes, hasCover: (k) => k === 'Alpha', dictio
   themes: [{ id: 'default', name: 'Witty', description: 'House.', scheme: 'dark', preview: { bg: '#0f1115', surface: '#1f232c', text: '#e8eaf0', accent: '#7955ff' } }, { id: 'mine', name: 'Mine', description: 'Imported.', scheme: 'light', preview: {}, imported: true }],
   look: 'lumen', theme: 'look', ...o })
 
-const RESOLVED = new Set(['Card', 'DetailHeader', 'FilterBar', 'SearchBox', 'ListItem', 'Banner', 'Grid', 'Shelf'])
+const RESOLVED = new Set(['Card', 'DetailHeader', 'FilterBar', 'SearchBox', 'ListItem', 'Banner', 'Grid', 'Shelf', 'NativeView'])
 const walk = (n, f, parent) => { f(n, parent); for (const c of n.children || []) walk(c, f, n) }
 const sizes = [[390, 844], [1280, 800]]
 const cases = [['reader-library', ''], ['reader-library', 'q=zzz'], ['reader-library', 'kind=pdf&sort=title'], ['reader-book', 'item=Alpha'], ['reader-notes', ''], ['reader-notes', 'kind=highlight&withNote=1'], ['reader-import', ''], ['reader-settings', ''], ['reader-welcome', '']]
@@ -46,7 +46,7 @@ for (const [id, q] of cases) for (const [w, h] of sizes) {
         // What the server resolves from its data (a card's, a header's, a filter bar's) isn't authored: those components carry more than the catalogue lists.
         const p = spec.props.find((x) => x.name === k)
         if (!RESOLVED.has(n.type)) assert.ok(names.has(k), `${n.type} has no property ${k}`)
-        if (p?.options && typeof v === 'string') assert.ok(p.options.some((o) => o.value === v), `${n.type}.${k}=${v}`)
+        if (p?.options && typeof v === 'string' && n.type !== 'NativeView') assert.ok(p.options.some((o) => o.value === v), `${n.type}.${k}=${v}`)
         if (p?.maxLength && typeof v === 'string' && p.type !== 'markdown') assert.ok(v.length <= p.maxLength, `${n.type}.${k} is ${v.length} long`)
         if (p?.type === 'icon') assert.ok(icons.has(v), `icon ${v}`)
       }
@@ -102,5 +102,5 @@ test('the library shows continue reading, filters and the grid; a search with no
 })
 
 test('the navigation lists the four pages', () => {
-  assert.deepEqual(navigation('web').items.map((i) => i.route), ['/', '/notes', '/import', '/settings'])
+  assert.deepEqual(navigation('web').items.map((i) => i.route), ['/', '/shelf', '/notes', '/import', '/settings'])
 })

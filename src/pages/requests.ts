@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 WittyWilla and contributors
 import { strToU8, zipSync } from 'fflate'
+import { clean, saveSettings, settingRow } from '../modules/settings.ts'
 import { filterNotes, notesBackups, notesMarkdown, type Note, type NoteFilter } from '../library.ts'
 
 // What a page's commands do. The pages carry `command` actions; the renderer's `plan` turns each into a request
@@ -19,13 +20,14 @@ export type Host = {
   setLook: (id: string) => Promise<void>
   removeTheme: (id: string) => Promise<void>
   finishWelcome: () => void
+  refresh: () => void
 }
 
 type Body = Record<string, string> | undefined
 const ROUTE: [RegExp, string][] = [
   [/^\/reader\/pick\/(books|notes|theme)$/, 'pick'], [/^\/reader\/books\/([^/]+)\/remove$/, 'remove'], [/^\/reader\/books\/([^/]+)\/export$/, 'export'],
   [/^\/reader\/notes\/export\/(md|json)$/, 'notes'], [/^\/reader\/dictionary\/toggle$/, 'dictionary'], [/^\/reader\/theme\/([^/]+)$/, 'theme'], [/^\/reader\/look\/([^/]+)$/, 'look'],
-  [/^\/reader\/themes\/([^/]+)\/remove$/, 'removeTheme'], [/^\/reader\/welcome\/done$/, 'welcome'],
+  [/^\/reader\/themes\/([^/]+)\/remove$/, 'removeTheme'], [/^\/reader\/welcome\/done$/, 'welcome'], [/^\/reader\/settings\/([a-z]+)\/([A-Za-z]+)$/, 'setting'],
 ]
 
 export const noteFilter = (b: Body): NoteFilter => ({ book: b?.book || undefined, kind: (b?.kind || 'all') as NoteFilter['kind'], color: b?.color || undefined, q: b?.q || undefined, withNote: b?.withNote === '1' })
@@ -53,6 +55,13 @@ export async function request(method: string, path: string, body: Body, host: Ho
     case 'look': await host.setLook(arg); break
     case 'removeTheme': await host.removeTheme(arg); break
     case 'welcome': host.finishWelcome(); break
+    case 'setting': {
+      // Only a key the module has, and a value its row allows.
+      const row = settingRow(arg, decodeURIComponent(m![2]))
+      const v = row && clean(row, body?.value)
+      if (row && v !== undefined) { saveSettings(arg, { [row.key]: v }); host.refresh() }
+      break
+    }
     case 'notes': {
       const list = filterNotes(await host.notes(), noteFilter(body))
       if (!list.length) { host.toast('There are no notes to export with these filters.'); break }

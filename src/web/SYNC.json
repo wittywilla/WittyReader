@@ -1,8 +1,8 @@
 {
   "$comment": "Written by scripts/sync-web.mjs. The hash of every file copied from WittyMediaServer and WittyModule; do not edit by hand.",
-  "server": "95ff4701",
+  "server": "e942e598",
   "serverBranch": "v0.8.0-alpha",
-  "module": "3c679cc",
+  "module": "b95cfbd",
   "files": {
     "src/web/brandName.ts": "c7de7a054ef640e77397f96d8523e5a28dd5ffc11f87faec93d54b23ccd5c05a",
     "src/web/brandStyle.ts": "27c8efe0a85f96edaaa3867ccd435263062bb1dbbc312c1979cacfa9432e727d",
@@ -30,7 +30,7 @@
     "src/web/sdui/render/context.tsx": "69088a6040a60ecea8956d81bd3f9081f3f65e6a2781987a00198e992a32dc4c",
     "src/web/sdui/render/icons.tsx": "5313908062dd60c0e17d79d0acc7cabaf8d10303a9243b1f8dcd984fd624a5cd",
     "src/web/sdui/render/markdown.tsx": "c970c6e7e69146f2bdefd37f455c15de2a7e2037dbe82b78ceb30eb62205c76a",
-    "src/web/sdui/render/widgets.tsx": "86db2d41f163f9904c27862653ee784ecb7fe2e55ba6144adf7b5770ba0844f7",
+    "src/web/sdui/render/widgets.tsx": "bf8eae71d4e628046798166484eff6312622a6c35c6f177525a1b4283dc52773",
     "src/web/ui/Button.tsx": "450757c08c572aa7e382d67a54e2972569a82ee858104ef437c7eb7bae3f88f9",
     "src/web/ui/Choice.tsx": "b0031888126d34f1543aa83f210a5ecc04a557b5a6a224ad9fb197a5869cc79c",
     "src/web/ui/Dock.tsx": "96e901d14d651a5aa314f573a50397a92ecff9a1d30f4a7e66596956ab4b97ca",
@@ -48,7 +48,7 @@
     "src/web/ui/spatial.ts": "e8bcc27c9b90f01228deaa92960db22405442d0479f95f64bdf8ccef06c34a8f",
     "src/web/ui/useInput.ts": "60b5f3c269b10a57d9e8bcc9824546ffe714c4013953d6c518d4c99ef13af0f0",
     "src/web/styles.css": "b2864511f0129b26083749ac9309f7c5fe3791d35024f81a028235b4452649ed",
-    "src/web/design2.css": "f9ae4b7bb527ae169dc93d4b66ff0c0574a19e44e1939a5b183867840fa9b82f",
+    "src/web/design2.css": "5a5a72c772e46e36ac3b7c4aabe5c99b53f4ca66415986b76906f6a5ab9eb3e6",
     "src/web/finish.css": "d2b571453d6cbf230be2d05e78201798f2fd51fd88cb6ad2f8d5229090af265e",
     "src/web/ui/ui.css": "52ccfe0db8cb4fec31a884b5d5930fea9ffc3da2f05e22ba0ba19e5640f89322",
     "src/web/sdui/sdui.css": "11d7166c159f75bffefebc43db5cdb6a1af3ba4497468b96b8ace71e60deed74",

@@ -1,0 +1,404 @@
+{
+  "$comment": "Written by scripts/sync-modules.mjs from the reader modules' sdui.json. Do not edit by hand.",
+  "modules": {
+    "wittyebook": {
+      "id": "wittyebook",
+      "title": "Books",
+      "icon": "book",
+      "groups": [
+        {
+          "title": "Text and display",
+          "footer": "Your choices in a book change these too, so every device opens books the same way.",
+          "rows": [
+            {
+              "key": "layout",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Layout",
+              "default": "auto",
+              "options": [
+                {
+                  "value": "auto",
+                  "label": "Auto"
+                },
+                {
+                  "value": "single",
+                  "label": "One page"
+                },
+                {
+                  "value": "book",
+                  "label": "Book view"
+                },
+                {
+                  "value": "scroll",
+                  "label": "Scroll"
+                }
+              ]
+            },
+            {
+              "key": "pageColour",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Page colour",
+              "default": "light",
+              "options": [
+                {
+                  "value": "light",
+                  "label": "White"
+                },
+                {
+                  "value": "sepia",
+                  "label": "Sepia"
+                },
+                {
+                  "value": "dark",
+                  "label": "Night"
+                },
+                {
+                  "value": "black",
+                  "label": "Black"
+                }
+              ]
+            },
+            {
+              "key": "font",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Font",
+              "default": "publisher",
+              "options": [
+                {
+                  "value": "publisher",
+                  "label": "The book's own"
+                },
+                {
+                  "value": "serif",
+                  "label": "Serif"
+                },
+                {
+                  "value": "sans",
+                  "label": "Sans serif"
+                },
+                {
+                  "value": "readable",
+                  "label": "Easy to read"
+                },
+                {
+                  "value": "mono",
+                  "label": "Monospace"
+                }
+              ]
+            },
+            {
+              "key": "textSize",
+              "kind": "int",
+              "scope": "profile",
+              "label": "Text size",
+              "default": 100,
+              "min": 60,
+              "max": 250,
+              "unit": "%"
+            },
+            {
+              "key": "lineSpacing",
+              "kind": "int",
+              "scope": "profile",
+              "label": "Line spacing",
+              "default": 155,
+              "min": 110,
+              "max": 220,
+              "unit": "%"
+            },
+            {
+              "key": "margins",
+              "kind": "int",
+              "scope": "profile",
+              "label": "Margins",
+              "help": "0 none, 6 widest.",
+              "default": 2,
+              "min": 0,
+              "max": 6
+            },
+            {
+              "key": "justify",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "Justify and hyphenate",
+              "default": true
+            }
+          ]
+        },
+        {
+          "title": "Light",
+          "rows": [
+            {
+              "key": "brightness",
+              "kind": "int",
+              "scope": "profile",
+              "label": "Brightness",
+              "default": 100,
+              "min": 35,
+              "max": 100,
+              "unit": "%"
+            },
+            {
+              "key": "warmth",
+              "kind": "int",
+              "scope": "profile",
+              "label": "Warmth (night light)",
+              "help": "Off at 0%.",
+              "default": 0,
+              "min": 0,
+              "max": 100,
+              "unit": "%"
+            }
+          ]
+        },
+        {
+          "title": "Read aloud",
+          "footer": "Read aloud starts from where you are, with the device's own voice.",
+          "rows": [
+            {
+              "key": "readAloudSpeed",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Speed",
+              "default": "1",
+              "options": [
+                {
+                  "value": "0.75",
+                  "label": "0.75×"
+                },
+                {
+                  "value": "1",
+                  "label": "1×"
+                },
+                {
+                  "value": "1.25",
+                  "label": "1.25×"
+                },
+                {
+                  "value": "1.5",
+                  "label": "1.5×"
+                },
+                {
+                  "value": "2",
+                  "label": "2×"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "wittypdf": {
+      "id": "wittypdf",
+      "title": "PDFs",
+      "icon": "book",
+      "groups": [
+        {
+          "title": "View",
+          "footer": "Your choices in a PDF change these too. Outline, thumbnails, going to a page and search are in the reader.",
+          "rows": [
+            {
+              "key": "zoom",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Zoom",
+              "default": "width",
+              "options": [
+                {
+                  "value": "width",
+                  "label": "Fit width"
+                },
+                {
+                  "value": "page",
+                  "label": "Fit page"
+                }
+              ]
+            },
+            {
+              "key": "twoPages",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "Two pages across",
+              "default": false
+            },
+            {
+              "key": "pageColour",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Page colour",
+              "default": "normal",
+              "options": [
+                {
+                  "value": "normal",
+                  "label": "White"
+                },
+                {
+                  "value": "sepia",
+                  "label": "Sepia"
+                },
+                {
+                  "value": "dark",
+                  "label": "Night"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "wittycomics": {
+      "id": "wittycomics",
+      "title": "Comics",
+      "icon": "comic",
+      "groups": [
+        {
+          "title": "For a comic you haven't opened yet",
+          "footer": "Each comic keeps what you choose while reading it. Manga marked right to left, and vertical strips, open as they say.",
+          "rows": [
+            {
+              "key": "layout",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Layout",
+              "default": "single",
+              "options": [
+                {
+                  "value": "single",
+                  "label": "Page"
+                },
+                {
+                  "value": "double",
+                  "label": "Spread"
+                },
+                {
+                  "value": "strip",
+                  "label": "Scroll"
+                }
+              ]
+            },
+            {
+              "key": "direction",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Direction",
+              "default": "ltr",
+              "options": [
+                {
+                  "value": "ltr",
+                  "label": "Left to right"
+                },
+                {
+                  "value": "rtl",
+                  "label": "Manga (right to left)"
+                }
+              ]
+            },
+            {
+              "key": "fit",
+              "kind": "enum",
+              "scope": "profile",
+              "label": "Fit",
+              "default": "height",
+              "options": [
+                {
+                  "value": "height",
+                  "label": "Height"
+                },
+                {
+                  "value": "width",
+                  "label": "Width"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "wittyink": {
+      "id": "wittyink",
+      "title": "Reading",
+      "icon": "book",
+      "groups": [
+        {
+          "title": "Handwriting",
+          "footer": "For books and PDFs. The pen's colours and sizes are chosen in the reader.",
+          "rows": [
+            {
+              "key": "pressure",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "Pen pressure",
+              "help": "Pressing harder draws a thicker line.",
+              "default": true
+            },
+            {
+              "key": "penOnly",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "Only a pen draws",
+              "help": "Fingers turn pages and scroll; only a pen or stylus writes.",
+              "default": false
+            },
+            {
+              "key": "autoPen",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "A pen writes straight away",
+              "help": "No need to choose the pen tool first.",
+              "default": true
+            },
+            {
+              "key": "snap",
+              "kind": "bool",
+              "scope": "profile",
+              "label": "Highlighter over text highlights it",
+              "help": "A highlighter stroke across words becomes a text highlight.",
+              "default": true
+            }
+          ]
+        },
+        {
+          "title": "What each highlight colour means",
+          "footer": "Shown in the notes list and in exports, in every book.",
+          "rows": [
+            {
+              "key": "meaningYellow",
+              "kind": "string",
+              "scope": "profile",
+              "label": "Yellow",
+              "help": "Such as Important",
+              "maxLength": 40
+            },
+            {
+              "key": "meaningGreen",
+              "kind": "string",
+              "scope": "profile",
+              "label": "Green",
+              "help": "Such as Definition",
+              "maxLength": 40
+            },
+            {
+              "key": "meaningBlue",
+              "kind": "string",
+              "scope": "profile",
+              "label": "Blue",
+              "help": "Such as Question",
+              "maxLength": 40
+            },
+            {
+              "key": "meaningPink",
+              "kind": "string",
+              "scope": "profile",
+              "label": "Pink",
+              "help": "Such as Quote",
+              "maxLength": 40
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -10,6 +10,7 @@ import { books } from './store'
 import { dictionaryOn, DICT_KEY, loadData } from './pages/data'
 import { navigation, page as buildDocument, registerCommands, ROUTES } from './pages/local.ts'
 import { layoutFor } from './pages/doc.ts'
+import { bookOfShelfId } from './pages/shelfHost'
 import { PageView, type Handlers } from './pages/PageView'
 import { request, type Host } from './pages/requests.ts'
 import { chooseLook, chooseTheme, addImported, finishFirstRun, firstRunDone, removeImported } from './theme/engine'
@@ -65,6 +66,19 @@ export default function App() {
   // A book that was read has new progress: the library is made again when it closes.
   useEffect(() => { if (!reading) refresh() }, [reading, refresh])
 
+  // The bookshelf view opens a book with a path of its own (\`/item/<n>\`) through the History API: it is the book's page here.
+  useEffect(() => {
+    const open = () => {
+      const m = /\/item\/(\d+)$/.exec(location.pathname)
+      if (!m) return
+      const key = bookOfShelfId(Number(m[1]))
+      history.replaceState(history.state, '', location.pathname.replace(/\/item\/\d+$/, '/') + location.search + location.hash)
+      if (key) navigate(`/book/${key}`)
+    }
+    window.addEventListener('popstate', open)
+    return () => window.removeEventListener('popstate', open)
+  }, [])
+
   // The first time, the app asks how it should look.
   useEffect(() => { if (!firstRunDone() && loc.pathname !== '/welcome' && !reading) navigate('/welcome', true) }, [loc.pathname, reading])
 
@@ -100,6 +114,7 @@ export default function App() {
     setTheme: async (id) => { await chooseTheme(id); refresh() },
     setLook: async (id) => { await chooseLook(id); refresh() },
     removeTheme: async (id) => { await removeImported(id); refresh() },
+    refresh,
     finishWelcome: () => { finishFirstRun(); navigate('/', true) },
   }), [toast, refresh])
 

@@ -5,6 +5,7 @@ import { CATALOG, VERSION, type Document, type Layout, type Navigation, type Nod
 import { setCommandSpecs, type CommandSpec, type RouteRule } from '../web/sdui/routes.ts'
 import { card, cmd, document, grid, list, n, nav, notice, row, shelf, stack, text, button } from './doc.ts'
 import { coverPath, wirePath } from './pictures.ts'
+import { getSettings, MODULES, type Row } from '../modules/settings.ts'
 
 // The local page provider: the app's own data (the library, its notes, its settings) as SDUI documents of the
 // server's catalogue. `Data` is what a page is made from, read by the app (src/pages/data.ts) so this file
@@ -23,6 +24,7 @@ export const ROUTES: RouteRule[] = [
   { route: '/', page: 'reader-library' },
   { route: '/search', page: 'reader-library' },
   { route: '/book/{item}', page: 'reader-book', params: { item: '{item}' } },
+  { route: '/shelf', page: 'reader-shelf' },
   { route: '/notes', page: 'reader-notes' },
   { route: '/import', page: 'reader-import' },
   { route: '/settings', page: 'reader-settings' },
@@ -40,13 +42,14 @@ export const COMMANDS: CommandSpec[] = [
   { op: 'reader.theme.set', method: 'POST', path: '/api/v1/reader/theme/{id}', params: [{ name: 'id', type: 'string', required: true }] },
   { op: 'reader.look.set', method: 'POST', path: '/api/v1/reader/look/{id}', params: [{ name: 'id', type: 'string', required: true }] },
   { op: 'reader.theme.remove', method: 'POST', path: '/api/v1/reader/themes/{id}/remove', params: [{ name: 'id', type: 'string', required: true }] },
+  { op: 'reader.setting.set', method: 'POST', path: '/api/v1/reader/settings/{module}/{key}', body: '{"value":"{value}"}', params: [{ name: 'module', type: 'string', required: true }, { name: 'key', type: 'string', required: true }, { name: 'value', type: 'string' }] },
   { op: 'reader.welcome.done', method: 'POST', path: '/api/v1/reader/welcome/done' },
 ]
 export const registerCommands = () => setCommandSpecs(COMMANDS)
 
 export function navigation(formFactor: string): Navigation {
   const item = (id: string, label: string, icon: string, route: string) => ({ id, label, icon, kind: 'page', page: id, route, placement: 'primary' })
-  return { version: VERSION, formFactor, items: [item('reader-library', 'Library', 'library', '/'), item('reader-notes', 'Notes', 'list', '/notes'), item('reader-import', 'Import', 'download', '/import'), item('reader-settings', 'Settings', 'settings', '/settings')] }
+  return { version: VERSION, formFactor, items: [item('reader-library', 'Library', 'library', '/'), item('reader-shelf', 'Shelf', 'book', '/shelf'), item('reader-notes', 'Notes', 'list', '/notes'), item('reader-import', 'Import', 'download', '/import'), item('reader-settings', 'Settings', 'settings', '/settings')] }
 }
 
 const cover = (b: Book, has: boolean) => (has ? { url: coverPath(b.key), aspect: '2/3', kind: 'poster' } : undefined)
@@ -161,10 +164,27 @@ function pickers(data: Data): Node[] {
     grid('themes', 'Theme', themeCards, { cardStyle: 'landscape', size: 'l' }), text('themes-h', 'A Theme is colour. Any Look can wear any Theme, including one you import.', 'caption')]
 }
 
+// A module's setting as a row with its control: the same keys and values the server's Reader page uses.
+function settingRow(module: string, r: Row, saved: Record<string, unknown>): Node {
+  const v = saved[r.key]
+  const set = (extra: Record<string, unknown> = {}) => cmd('reader.setting.set', undefined, { module, key: r.key, ...extra })
+  const label = r.unit ? `${r.label} (${r.unit})` : r.label
+  const control = r.kind === 'bool' ? { type: 'switch', name: r.key, value: v === true }
+    : r.kind === 'enum' ? { type: 'select', name: r.key, value: String(v ?? ''), options: r.options }
+      : r.kind === 'int' ? { type: 'slider', name: r.key, value: Number(v ?? r.default ?? r.min ?? 0), min: r.min, max: r.max, step: 1, unit: r.unit }
+        : { type: 'field', name: r.key, value: String(v ?? ''), maxLength: r.maxLength, placeholder: r.help }
+  return n('ListItem', `set-${module}-${r.key}`, { title: label, subtitle: r.kind === 'string' ? undefined : r.help, control }, { action: r.kind === 'bool' ? set({ value: v !== true }) : set() })
+}
+const moduleSettings = (): Node[] => MODULES.flatMap((m) => m.groups.map((g, i) => {
+  const saved = getSettings(m.id)
+  return list(`mod-${m.id}-${i}`, `${m.title}: ${g.title}`, g.rows.map((r) => settingRow(m.id, r, saved)))
+}))
+
 function settingsPage(data: Data): Node[] {
   const imported = data.themes.filter((t) => t.imported)
   return [
     list('reading', 'Reading', [n('ListItem', 'dict', { title: 'Look up words online', subtitle: 'Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.', icon: 'globe', control: { type: 'switch', name: 'dictionary', value: data.dictionary } }, { action: cmd('reader.dictionary.toggle', undefined, { value: !data.dictionary }) })]),
+    ...moduleSettings(),
     ...pickers(data),
     stack('theme-import', [button('import-theme', 'Import a theme…', cmd('reader.pick', undefined, { what: 'theme' }), { icon: 'plus' })], { direction: 'row' }),
     text('theme-import-h', 'A theme is a ZIP with theme.json and theme.css, and may hold fonts and pictures. It can set variables only, and can’t reach another site.', 'caption'),
@@ -186,9 +206,10 @@ function welcomePage(data: Data): Node[] {
   ]
 }
 
-export const PAGES = ['reader-library', 'reader-book', 'reader-notes', 'reader-import', 'reader-settings', 'reader-welcome'] as const
+export const PAGES = ['reader-library', 'reader-shelf', 'reader-book', 'reader-notes', 'reader-import', 'reader-settings', 'reader-welcome'] as const
 const INFO: Record<string, { title: string; kind: string; icon: string; route: string }> = {
   'reader-library': { title: 'Library', kind: 'books', icon: 'library', route: '/' },
+  'reader-shelf': { title: 'Bookshelf', kind: 'books', icon: 'book', route: '/shelf' },
   'reader-book': { title: 'Book', kind: 'detail', icon: 'book', route: '/book/{item}' },
   // Its search box holds the current search, which a `search` page's box does.
   'reader-notes': { title: 'Notes', kind: 'search', icon: 'list', route: '/notes' },
@@ -204,6 +225,7 @@ export function page(id: string, params: URLSearchParams, data: Data, layout: La
   let kids: Node[] | null
   switch (id) {
     case 'reader-library': kids = library(data, params); break
+    case 'reader-shelf': kids = [n('NativeView', 'shelf', { view: 'wittyink.bookshelf', library: '1' })]; break
     case 'reader-book': kids = bookPage(data, params.get('item') || ''); break
     case 'reader-notes': kids = notesPage(data, params); break
     case 'reader-import': kids = importPage(); break
