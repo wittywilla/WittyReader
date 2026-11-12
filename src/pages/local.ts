@@ -18,7 +18,9 @@ export type Data = {
   dictionary: boolean; version: string; used?: string
   looks: LookChoice[]; themes: ThemeChoice[]; look: string; theme: string
   // The server this app is connected to, or a pairing in progress (src/pages/connection.ts).
-  server?: { base: string; user?: string }
+  servers?: { base: string; user?: string; active: boolean }[]
+  // Whether this build can call a server the person adds: the desktop app does (its policy gains exactly that origin).
+  canConnect?: boolean
   pairing?: { base: string; pin: string; approveUrl: string; error?: string }
 }
 
@@ -48,8 +50,10 @@ export const COMMANDS: CommandSpec[] = [
   { op: 'reader.theme.remove', method: 'POST', path: '/api/v1/reader/themes/{id}/remove', params: [{ name: 'id', type: 'string', required: true }] },
   { op: 'reader.setting.set', method: 'POST', path: '/api/v1/reader/settings/{module}/{key}', body: '{"value":"{value}"}', params: [{ name: 'module', type: 'string', required: true }, { name: 'key', type: 'string', required: true }, { name: 'value', type: 'string' }] },
   { op: 'reader.connect.start', method: 'POST', path: '/api/v1/reader/connect/start', body: '{"server":"{server}"}', params: [{ name: 'server', type: 'string', required: true }] },
+  { op: 'reader.server.use', method: 'POST', path: '/api/v1/reader/servers/use', body: '{"server":"{server}"}', params: [{ name: 'server', type: 'string', required: true }] },
+  { op: 'reader.server.remove', method: 'POST', path: '/api/v1/reader/servers/remove', body: '{"server":"{server}"}', params: [{ name: 'server', type: 'string', required: true }] },
   { op: 'reader.connect.cancel', method: 'POST', path: '/api/v1/reader/connect/cancel' },
-  { op: 'reader.disconnect', method: 'POST', path: '/api/v1/reader/connect/disconnect' },
+
   { op: 'reader.welcome.done', method: 'POST', path: '/api/v1/reader/welcome/done' },
 ]
 export const registerCommands = () => setCommandSpecs(COMMANDS)
@@ -191,8 +195,7 @@ function settingsPage(data: Data): Node[] {
   const imported = data.themes.filter((t) => t.imported)
   return [
     list('reading', 'Reading', [n('ListItem', 'dict', { title: 'Look up words online', subtitle: 'Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.', icon: 'globe', control: { type: 'switch', name: 'dictionary', value: data.dictionary } }, { action: cmd('reader.dictionary.toggle', undefined, { value: !data.dictionary }) })]),
-    // The Connect to a server row (nav('/connect')) is left out until the owner decides on the app's content security policy: a built app only
-    // calls its own address and the dictionary, so a connection would be refused (docs/SDUI-ARCHITECTURE.md). The page itself works: /connect.
+    list('server-row', 'Servers', [row('connect', data.servers?.length ? `${data.servers.length} ${data.servers.length === 1 ? 'server' : 'servers'}` : 'Connect to a server', { subtitle: data.canConnect ? 'Add a WittyMediaServer to read its books here too, or remove one.' : 'Needs the WittyReader desktop app.', icon: 'globe', action: nav('/connect') })]),
     ...moduleSettings(),
     ...pickers(data),
     stack('theme-import', [button('import-theme', 'Import a theme…', cmd('reader.pick', undefined, { what: 'theme' }), { icon: 'plus' })], { direction: 'row' }),
@@ -219,19 +222,25 @@ function connectPage(data: Data): Node[] {
       stack('cancel', [button('cancel-btn', 'Cancel', cmd('reader.connect.cancel'), { variant: 'ghost' })], { direction: 'row' }),
     ]
   }
-  if (data.server) {
-    return [
-      notice('on', `This app is connected to ${data.server.base}${data.server.user ? ` as ${data.server.user}` : ''}. Its pages are under Server; your library, notes and settings stay on this device.`, { tone: 'success', icon: 'check', title: 'Connected' }),
-      list('server', 'Server', [row('open', 'Open the server’s pages', { icon: 'globe', action: nav('/s') })]),
-      stack('off', [button('off-btn', 'Disconnect', { ...cmd('reader.disconnect'), confirm: 'Disconnect from this server? Your library stays on this device.' }, { icon: 'warning' })], { direction: 'row' }),
-    ]
+  const servers = data.servers || []
+  const out: Node[] = []
+  if (servers.length) {
+    out.push(list('servers', 'Your servers', servers.flatMap((sv) => [
+      row(`use-${sv.base}`, sv.base, { subtitle: sv.user ? `Signed in as ${sv.user}` : 'Signed in', icon: 'globe', trailing: sv.active ? 'In use' : 'Use', action: sv.active ? nav('/s') : cmd('reader.server.use', undefined, { server: sv.base }) }),
+      row(`rm-${sv.base}`, `Remove ${sv.base}`, { subtitle: 'Signs this device out of it and stops the app calling it.', icon: 'warning', trailing: 'Remove', action: { ...cmd('reader.server.remove', undefined, { server: sv.base }), confirm: `Remove ${sv.base}? This device is signed out of it. Your library stays on this device.` } }),
+    ])))
   }
-  return [
-    text('why', 'Connect WittyReader to a WittyMediaServer to read its books here too. Nothing is typed but the server’s address: the server shows you a code to approve from a device you are already signed in on. Without a server the app works as it always has.'),
-    n('Form', 'connect', { submitLabel: 'Connect' }, { action: cmd('reader.connect.start'), children: [
-      list('form', 'Server', [n('ListItem', 'server', { title: 'Address', subtitle: 'For example 192.168.1.20:9797', control: { type: 'field', name: 'server', value: '', placeholder: '192.168.1.20:9797' } })]),
+  if (!data.canConnect) {
+    out.push(notice('desktop', 'WittyReader on the web can only talk to the address it is served from. To read from a WittyMediaServer, use the WittyReader desktop app, which lets you add servers, one by one, and only those. (A web host can also serve WittyReader with a Content-Security-Policy header that names your server.)', { tone: 'info', icon: 'info', title: 'Connecting needs the desktop app' }))
+    return out
+  }
+  out.push(
+    text('why', 'Connect WittyReader to a WittyMediaServer to read its books here too. Nothing is typed but the server’s address: the server shows you a code to approve from a device you are already signed in on. The app calls only the servers you add here. Without a server it works as it always has.'),
+    n('Form', 'connect', { submitLabel: 'Add a server' }, { action: cmd('reader.connect.start'), children: [
+      list('form', 'Add a server', [n('ListItem', 'server', { title: 'Address', subtitle: 'For example 192.168.1.20:9797, with no path', control: { type: 'field', name: 'server', value: '', placeholder: '192.168.1.20:9797' } })]),
     ] }),
-  ]
+  )
+  return out
 }
 
 function welcomePage(data: Data): Node[] {

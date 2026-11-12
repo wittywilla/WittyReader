@@ -3,15 +3,14 @@
 // Connecting to a server by secure pairing, against a stand-in server; and moving a server page under /s.
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { placed, pollPairing, SERVER_RULES, serverBase, startPairing } from '../../src/pages/connection.ts'
+import { readFileSync } from 'node:fs'
+import { originOf, placed, pollPairing, SERVER_RULES, startPairing } from '../../src/pages/connection.ts'
 import { resolve } from '../../src/web/sdui/routes.ts'
 
 const reply = (status, body) => new Response(JSON.stringify(body), { status })
-test('the address is an http or https origin, nothing else', () => {
-  assert.equal(serverBase('192.168.1.20:9797'), 'http://192.168.1.20:9797')
-  assert.equal(serverBase('https://media.example/path?x=1'), 'https://media.example')
-  assert.equal(serverBase('ftp://x'), null); assert.equal(serverBase('http://u:p@x'), null); assert.equal(serverBase(''), null)
-})
+const vectors = JSON.parse(readFileSync(new URL('../../desktop/test/origin-vectors.json', import.meta.url), 'utf8'))
+test('an address is turned into an origin, by the same rules as the desktop app', () => { for (const [input, want] of vectors.ok) assert.equal(originOf(input), want, input) })
+test('anything that is not a plain http or https origin is refused', () => { for (const bad of vectors.bad) assert.equal(originOf(bad), null, JSON.stringify(bad)) })
 test('pairing starts with the device name and polls with the secret; approval gives the token once', async () => {
   const log = []
   const f = async (url, init) => { log.push([url, init]); if (init?.method === 'POST') return reply(200, { sessionId: 's1', deviceSecret: 'sec', pin: '123456', approveUrl: 'http://srv/pair?code=ABC', intervalSec: 3, expiresAt: 99 }); return url.endsWith('/pin') ? reply(200, { pin: '654321' }) : reply(200, { status: log.length > 3 ? 'approved' : 'pending', token: 'T', user: { name: 'Alex' } }) }

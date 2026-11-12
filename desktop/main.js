@@ -2,13 +2,16 @@
 // Copyright (C) 2026 WittyWilla and contributors
 // WittyReader for Windows, macOS and Linux: one window showing the same app as the web version,
 // from its built files, through an address of its own. The page has no access to Node, and the
-// only thing it can reach outside the app is the dictionary, which the reader has to turn on.
+// only things it can reach outside the app are the dictionary, which the reader has to turn on,
+// and the servers the reader has added (origins.js): exactly their origins, in the page's policy and again in the
+// session's request filter, and no others.
 const { app, BrowserWindow, Menu, ipcMain, protocol, session, shell } = require('electron')
 const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
 const { Readable } = require('stream')
 const { booksIn } = require('./opened.js')
+const { allowedRequest, cleanList, originOf, rewriteHtml } = require('./origins.js')
 const { SCHEME, HOST, ORIGIN, OPENED_PREFIX, contentType, resolveAppFile } = require('./serve.js')
 
 const WEB_ROOT = app.isPackaged ? path.join(__dirname, 'app') : path.join(__dirname, '..', 'dist')
@@ -18,6 +21,12 @@ const MAX_BOOK_BYTES = 2 * 1024 * 1024 * 1024 - 1
 // Copy and citations, and keeping the library when the disk runs low. Nothing else is ever granted.
 const ALLOWED_PERMISSIONS = new Set(['clipboard-sanitized-write', 'persistent-storage'])
 const SIZE_FILE = () => path.join(app.getPath('userData'), 'window.json')
+const SERVERS_FILE = () => path.join(app.getPath('userData'), 'servers.json')
+
+// The servers the reader added: origins only, kept in the app's own folder, and read again for every page it serves.
+let servers = []
+function loadServers() { try { servers = cleanList(JSON.parse(fs.readFileSync(SERVERS_FILE(), 'utf8'))) } catch { servers = [] } }
+function saveServers() { try { fs.writeFileSync(SERVERS_FILE(), JSON.stringify(servers)) } catch { /* they are asked for again next time */ } }
 
 let win = null
 let bookQueue = []
@@ -48,7 +57,9 @@ async function answer(request) {
   const file = resolveAppFile(WEB_ROOT, url.pathname)
   if (!file) return notFound()
   try {
-    const body = await fs.promises.readFile(file)
+    let body = await fs.promises.readFile(file)
+    // The page's own policy, with the added servers' origins in connect-src and img-src.
+    if (path.basename(file) === 'index.html') body = Buffer.from(rewriteHtml(body.toString('utf8'), servers))
     return new Response(body, { headers: { 'Content-Type': contentType(file), 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache' } })
   } catch {
     return notFound()
@@ -92,7 +103,7 @@ function lockDown() {
   session.defaultSession.setPermissionCheckHandler((_contents, permission, origin) => allowed(permission, origin))
   // The app's own policy already says this. This is the same rule again, from outside the page.
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, done) => {
-    done({ cancel: /^(https?|wss?|ftp):/i.test(details.url) && !details.url.startsWith(DICTIONARY) })
+    done({ cancel: /^(https?|wss?|ftp):/i.test(details.url) && !allowedRequest(details.url, DICTIONARY, servers) })
   })
 }
 
@@ -118,6 +129,27 @@ function saveSize() {
   if (!win.isMaximized() && !win.isFullScreen()) { const [width, height] = win.getSize(); size = { width, height } }
   try { fs.writeFileSync(SIZE_FILE(), JSON.stringify({ width: size.width, height: size.height, background })) } catch { /* it just opens at the usual size */ }
 }
+
+// The page asks for a server to be added or removed; the origin is checked here, not trusted from the page. The page is
+// reloaded so its policy (read once per page) shows the new list, and is told which address to carry on with.
+const fromPage = (event) => win && event.sender === win.webContents && isOurs(event.senderFrame?.url || '')
+ipcMain.handle('servers:list', (event) => (fromPage(event) ? servers.slice() : []))
+ipcMain.handle('servers:add', (event, input, hash) => {
+  const origin = originOf(input)
+  if (!fromPage(event) || !origin) return null
+  if (!servers.includes(origin)) { servers = cleanList([...servers, origin]); saveServers() }
+  if (!servers.includes(origin)) return null // the list is full
+  if (win) win.loadURL(`${ORIGIN}/#${typeof hash === 'string' && /^\/[\w/?=&%.:-]*$/.test(hash) ? hash : '/connect'}`)
+  return origin
+})
+ipcMain.handle('servers:remove', (event, input) => {
+  const origin = originOf(input)
+  if (!fromPage(event) || !origin) return false
+  servers = servers.filter((o) => o !== origin)
+  saveServers()
+  if (win) win.webContents.reload()
+  return true
+})
 
 ipcMain.on('background', (event, colour) => {
   if (!win || event.sender !== win.webContents || !isOurs(event.senderFrame?.url || '') || typeof colour !== 'string' || !HEX.test(colour)) return
@@ -187,6 +219,7 @@ else {
   app.on('web-contents-created', (_event, contents) => guard(contents))
   app.whenReady().then(() => {
     Menu.setApplicationMenu(applicationMenu())
+    loadServers()
     lockDown()
     protocol.handle(SCHEME, answer)
     createWindow()

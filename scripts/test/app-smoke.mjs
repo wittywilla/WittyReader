@@ -91,7 +91,7 @@ if (step === 'first') {
   expect('title', await page.eval('document.title'), 'WittyReader')
   expect('a secure context', await page.eval('isSecureContext'), true)
   expect('what the page can reach of Node', await page.eval('[typeof require, typeof process, typeof module].join()'), 'undefined,undefined,undefined')
-  expect('what the desktop app gives the page', await page.eval('Object.keys(window.wittyReaderDesktop)'), ['setBookConsumer', 'setBackground'])
+  expect('what the desktop app gives the page', await page.eval('Object.keys(window.wittyReaderDesktop)'), ['setBookConsumer', 'setBackground', 'servers', 'addServer', 'removeServer'])
   const csp = await page.eval(`document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || ''`)
   console.log(`the app's security policy: ${csp}`)
   if (!csp.includes("script-src 'self'")) fail("the app's own security policy is missing")

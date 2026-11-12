@@ -10,22 +10,48 @@ import type { Connection } from './remote.ts'
 export type Saved = Connection & { user?: string }
 export type Pairing = { base: string; sessionId: string; deviceSecret: string; pin: string; approveUrl: string; intervalSec: number; expiresAt: number }
 export type Poll = { status: 'pending' | 'approved' | 'denied' | 'expired' | 'locked' | 'slow-down'; token?: string; user?: string; pin?: string }
-const KEY = 'wittyreader.server'
+const KEY = 'wittyreader.servers'
+const MAX_SERVERS = 8
 
-export const saved = (): Saved | null => { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v?.base && v?.token ? v : null } catch { return null } }
-export const keep = (s: Saved) => { try { localStorage.setItem(KEY, JSON.stringify(s)) } catch { /* this visit only */ } }
-export const forget = () => { try { localStorage.removeItem(KEY) } catch { /* nothing kept */ } }
-
-/** The address a person typed as the server's base: http or https, no path, no sign-in in it. */
-export function serverBase(input: string): string | null {
-  const t = input.trim()
-  if (!t) return null
+/** The servers this device has added and is signed in to, the one in use last. */
+export function savedServers(): Saved[] {
   try {
-    const u = new URL(/^[a-z]+:\/\//i.test(t) ? t : 'http://' + t)
-    if (!/^https?:$/.test(u.protocol) || u.username || u.password) return null
-    return u.origin
-  } catch { return null }
+    const v = JSON.parse(localStorage.getItem(KEY) || '[]')
+    return Array.isArray(v) ? v.filter((s) => s && typeof s.token === 'string' && originOf(s.base) === s.base).slice(0, MAX_SERVERS) : []
+  } catch { return [] }
 }
+const write = (list: Saved[]) => { try { localStorage.setItem(KEY, JSON.stringify(list)) } catch { /* this visit only */ } }
+/** Adds (or replaces) a server and makes it the one in use. */
+export function keep(s: Saved): Saved[] { const list = [...savedServers().filter((x) => x.base !== s.base), s].slice(-MAX_SERVERS); write(list); return list }
+/** Takes a server away with its token. */
+export function forget(base: string): Saved[] { const list = savedServers().filter((x) => x.base !== base); write(list); return list }
+/** Makes a saved server the one in use. */
+export function use(base: string): Saved[] { const all = savedServers(); const one = all.find((x) => x.base === base); const list = one ? [...all.filter((x) => x !== one), one] : all; write(list); return list }
+export const inUse = (list: Saved[] = savedServers()): Saved | null => list[list.length - 1] || null
+
+/** What the desktop app gives the page for the servers it lets the page call (desktop/preload.js). */
+export type DesktopServers = { servers?: () => Promise<string[]>; addServer?: (address: string, hash?: string) => Promise<string | null>; removeServer?: (address: string) => Promise<boolean> }
+export const desktop = (): DesktopServers | null => (typeof window !== 'undefined' ? ((window as unknown as { wittyReaderDesktop?: DesktopServers }).wittyReaderDesktop?.addServer ? (window as unknown as { wittyReaderDesktop: DesktopServers }).wittyReaderDesktop : null) : null)
+
+/** An address as an origin ("http://192.168.1.20:9797"), or null: only http and https, a host and an optional port, no sign-in, no path,
+ * query or fragment, no wildcard. The same rules as the desktop app's (desktop/origins.js; both are tested with desktop/test/origin-vectors.json). */
+export function originOf(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const text = input.trim()
+  if (!text || text.length > 200 || /[\s"'<>`\\*;,|]/.test(text)) return null
+  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(text)
+  if (!hasScheme && !/^(\[[0-9a-f:.]+\]|[a-z0-9.-]+)(:\d{1,5})?\/?$/i.test(text)) return null
+  const withScheme = hasScheme ? text : 'http://' + text
+  let u: URL
+  try { u = new URL(withScheme) } catch { return null }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+  if (u.username || u.password || !u.hostname) return null
+  if (u.search || u.hash || (u.pathname !== '/' && u.pathname !== '')) return null
+  if (withScheme.includes('?') || withScheme.includes('#') || withScheme.includes('@')) return null
+  if (u.hostname.includes('%') || u.hostname.startsWith('.') || u.hostname.endsWith('.')) return null
+  return u.origin
+}
+export const serverBase = originOf
 
 type Fetcher = typeof fetch
 const json = async (res: Response) => { const t = await res.text(); try { return t ? JSON.parse(t) : {} } catch { return { error: t } } }

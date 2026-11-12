@@ -105,3 +105,20 @@ test('the library shows continue reading, filters and the grid; a search with no
 test('the navigation lists the four pages', () => {
   assert.deepEqual(navigation('web').items.map((i) => i.route), ['/', '/shelf', '/notes', '/import', '/settings'])
 })
+
+test('the connect page: the web build says it needs the desktop app; the desktop build adds servers; saved servers can be used and removed', () => {
+  registerCommands()
+  const servers = [{ base: 'http://192.168.1.20:9797', user: 'Alex', active: true }, { base: 'https://media.test', active: false }]
+  const web = page('reader-connect', new URLSearchParams(), data({ servers, canConnect: false }), layoutFor(1280, 800))
+  assert.ok(web.root.children.some((c) => c.type === 'Notice' && /desktop app/.test(c.props.title)), 'web: the notice')
+  assert.ok(!web.root.children.some((c) => c.type === 'Form'), 'web: no way to add one')
+  const app = page('reader-connect', new URLSearchParams(), data({ servers, canConnect: true }), layoutFor(1280, 800))
+  assert.ok(app.root.children.some((c) => c.type === 'Form'))
+  const rows = app.root.children[0].children
+  assert.equal(rows.length, 4, 'a use row and a remove row for each server')
+  const remove = rows.find((r) => r.id === 'rm-https://media.test')
+  assert.equal(plan(remove.action).do, 'request'); assert.match(remove.action.confirm, /signed out/)
+  assert.equal(plan(rows[0].action).do, 'go', 'the one in use opens its pages')
+  assert.equal(plan(rows[2].action).do, 'request', 'another is made the one in use')
+  assert.equal(plan(page('reader-settings', new URLSearchParams(), data({ canConnect: true }), layoutFor(1280, 800)).root.children.find((c) => c.id === 'server-row').children[0].action).do, 'go')
+})

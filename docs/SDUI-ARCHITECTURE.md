@@ -86,6 +86,29 @@ components, icons, card styles and action types; unique node ids; exactly one de
   (the renderer asks a server for them) and are listed as a known limit.
 * **The reader's own reading colours** (page, sepia, night) stay inside the reader plugins, separate from the app theme.
 
+## Connecting to a server: only servers the person adds
+
+The built app's content security policy stays strict: scripts, styles and images from itself, and `connect-src` for itself and the dictionary
+(off until turned on). **A server can be called only after the person adds it** (Settings, Connect to a server: its address, then secure
+pairing), and then exactly that origin, nothing broader.
+
+- **Address rules** (`originOf`, in `src/pages/connection.ts` and again in `desktop/origins.js`, both tested with the same vectors,
+  `desktop/test/origin-vectors.json`): `http` or `https` only (a bare `host:port` means http), a host and an optional port, no sign-in in it
+  (userinfo), no path, query or fragment, no wildcard, no spaces, quotes, semicolons or commas. At most eight servers.
+- **Desktop app** (the one build that can add servers): the page asks over the preload bridge (`servers`, `addServer`, `removeServer`); the
+  main process validates the origin itself (never trusting the page), keeps the list in its own folder (`servers.json`), and
+  - serves `index.html` with the origins appended to the `connect-src` and `img-src` of its policy `<meta>` (`rewriteHtml`; no other
+    directive changes; no servers means the policy as built), and
+  - allows requests to the dictionary and those origins only in the session's request filter (`allowedRequest`).
+  The policy is read once per page, so adding or removing a server reloads the page; an added server carries on to pairing, a removed one
+  loses its sign-in and its origin at once.
+- **Plain web build**: the page can't change its own policy, so the Connect page says connecting needs the desktop app (or a web host that
+  serves WittyReader with a `Content-Security-Policy` header naming the server) and offers no way to add one.
+- **Signing in** is secure pairing (CLIENT-API.md): the address is the only thing typed, the app shows a PIN and a QR code, someone signed in
+  elsewhere approves, and the token comes back once and is kept per server. Settings lists the servers with Use and Remove (Remove
+  signs the device out of it and takes its origin away).
+- Pages of the server in use come from `src/pages/remote.ts` under `/s`; the app's own pages stay local.
+
 ## Status
 
 See `HANDOVER-0.8.0.md`, "W17: WittyReader", for built and not built.

@@ -1,0 +1,20 @@
+{
+  "ok": [
+    ["192.168.1.20:9797", "http://192.168.1.20:9797"],
+    ["http://192.168.1.20:9797", "http://192.168.1.20:9797"],
+    ["http://192.168.1.20:9797/", "http://192.168.1.20:9797"],
+    ["https://media.example.com", "https://media.example.com"],
+    ["  HTTPS://Media.Example.com:8443/  ", "https://media.example.com:8443"],
+    ["http://[::1]:9797", "http://[::1]:9797"],
+    ["localhost:9797", "http://localhost:9797"],
+    ["https://media.example.com:443", "https://media.example.com"]
+  ],
+  "bad": [
+    "", "   ", "http:", "https://", "ftp://media.example.com", "file:///etc/passwd", "javascript:alert(1)", "data:text/html,x", "wss://media.example.com",
+    "http://user@media.example.com", "http://user:pass@media.example.com", "http://@media.example.com",
+    "https://media.example.com/api", "https://media.example.com/api/v1", "https://media.example.com/?x=1", "https://media.example.com/#x", "https://media.example.com?x",
+    "*", "*.example.com", "https://*.example.com", "http://*", "https:", "http:", "https: http:", "https://a.example.com https://b.example.com",
+    "https://media.example.com; script-src *", "https://media.example.com'", "https://media.example.com\"", "http://exa mple.com", "http://example.com,http://evil.test",
+    "http://.example.com", "http://example.com.", "http://exa%20mple.com", "https://media.example.com\\@evil.test", "//media.example.com", null, 5, {}
+  ]
+}

@@ -8,7 +8,7 @@ import { exportNotesFile, importFile, importNotesFile, openBook } from './books'
 import { Shell } from './Shell'
 import { books } from './store'
 import { dictionaryOn, DICT_KEY, loadData } from './pages/data'
-import { forget, keep, placed, pollPairing, saved, SERVER_RULES, serverBase, startPairing, type Pairing } from './pages/connection.ts'
+import { desktop, forget, inUse, keep, originOf, placed, pollPairing, savedServers, SERVER_RULES, startPairing, use, type Pairing, type Saved } from './pages/connection.ts'
 import { remote } from './pages/remote.ts'
 import { navigation, page as buildDocument, registerCommands, ROUTES } from './pages/local.ts'
 import { layoutFor } from './pages/doc.ts'
@@ -50,7 +50,9 @@ function useWindow() {
 export default function App() {
   const loc = useLocation()
   // Connected to a server (its pages under /s), or pairing with one.
-  const [conn, setConn] = useState(saved)
+  const [servers, setServers] = useState<Saved[]>(savedServers)
+  const conn = inUse(servers)
+  const bridge = desktop()
   const [pairing, setPairing] = useState<(Pairing & { shown: string; error?: string }) | null>(null)
   const route = useMemo(() => resolve(loc.pathname, loc.search, conn ? [...ROUTES, ...SERVER_RULES] : ROUTES), [loc.pathname, loc.search, conn])
   const size = useWindow()
@@ -64,6 +66,10 @@ export default function App() {
   const themePicker = useRef<HTMLInputElement | null>(null)
   const msgTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toast = useCallback((m: string) => { setMsg(m); if (msgTimer.current) clearTimeout(msgTimer.current); msgTimer.current = setTimeout(() => setMsg(''), 3500) }, [])
+  const beginPairing = useCallback(async (base: string) => {
+    setBusy('Asking the server…')
+    try { const p = await startPairing(base, 'WittyReader'); setPairing({ ...p, shown: p.pin }) } catch (e) { toast((e as Error).message) } finally { setBusy('') }
+  }, [toast])
   const refresh = useCallback(() => setVersion((v) => v + 1), [])
   const reading = route?.kind === 'native' && route.screen === 'reader' ? route.vars.item : ''
   const dictionary = useRef(dictionaryOn())
@@ -84,6 +90,20 @@ export default function App() {
     return () => window.removeEventListener('popstate', open)
   }, [])
 
+  // After the desktop app added a server and reloaded the page: carry on with pairing it (the address came back in the hash).
+  useEffect(() => {
+    if (loc.pathname !== '/connect' || !bridge) return
+    const want = originOf(new URLSearchParams(loc.search).get('pair'))
+    if (!want) return
+    navigate('/connect', true)
+    void bridge.servers?.().then((list) => { if (list.includes(want)) void beginPairing(want) })
+  }, [loc.pathname, loc.search]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A server the desktop app no longer lets the page call has no use here: its sign-in is dropped.
+  useEffect(() => {
+    void bridge?.servers?.().then((list) => { const keepOnly = savedServers().filter((x) => list.includes(x.base)); if (keepOnly.length !== savedServers().length) { savedServers().filter((x) => !list.includes(x.base)).forEach((x) => forget(x.base)); setServers(savedServers()) } })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // While pairing, the server is asked every few seconds: approved, the token is kept and the server's pages open.
   useEffect(() => {
     if (!pairing) return
@@ -91,7 +111,7 @@ export default function App() {
     const t = setInterval(async () => {
       try {
         const r = await pollPairing(p)
-        if (r.status === 'approved' && r.token) { const c = { base: p.base, token: r.token, user: r.user }; keep(c); setConn(c); setPairing(null); navigate('/s', true); toast('Connected.') }
+        if (r.status === 'approved' && r.token) { setServers(keep({ base: p.base, token: r.token, user: r.user })); setPairing(null); navigate('/s', true); toast('Connected.') }
         else if (r.status === 'denied' || r.status === 'expired' || r.status === 'locked') { setPairing(null); toast(r.status === 'denied' ? 'The server refused this device.' : 'That code ran out. Start again.') }
         else if (r.pin && r.pin !== p.shown) setPairing((cur) => (cur ? { ...cur, shown: r.pin! } : cur))
       } catch { setPairing((cur) => (cur ? { ...cur, error: 'Can’t reach the server right now. Still trying.' } : cur)) }
@@ -113,13 +133,13 @@ export default function App() {
       remote(conn).page(route.page.slice(7), device, Object.fromEntries([...new URLSearchParams(loc.search), ...Object.entries(route.params)])).then((d) => live && setDoc(placed(d))).catch((e: Error) => { if (live) { toast(e.message); setDoc(null) } })
       return () => { live = false }
     }
-    loadData(VERSION, { server: conn ? { base: conn.base, user: conn.user } : undefined, pairing: pairing ? { base: pairing.base, pin: pairing.shown, approveUrl: pairing.approveUrl, error: pairing.error } : undefined }).then((data) => {
+    loadData(VERSION, { canConnect: !!bridge, servers: servers.map((x) => ({ base: x.base, user: x.user, active: x === conn })), pairing: pairing ? { base: pairing.base, pin: pairing.shown, approveUrl: pairing.approveUrl, error: pairing.error } : undefined }).then((data) => {
       if (!live) return
       const layout = layoutFor(size.w, size.h, { touch: device.capabilities.includes('touch') && !device.capabilities.includes('pointer'), desktopShell: device.platform === 'desktop', reducedMotion: device.capabilities.includes('reducedMotion') })
       setDoc(buildDocument(route.page, new URLSearchParams([...new URLSearchParams(loc.search), ...Object.entries(route.params)]), data, layout))
     }).catch(() => live && setDoc(null))
     return () => { live = false }
-  }, [route, loc.search, version, size.w, size.h, device, conn, pairing, toast])
+  }, [route, loc.search, version, size.w, size.h, device, servers, pairing, toast])
   useEffect(() => { document.title = doc ? `${doc.page.title} · WittyReader` : 'WittyReader' }, [doc])
 
   // ---- what a page's commands do
@@ -142,11 +162,19 @@ export default function App() {
     refresh,
     connect: async (what, server) => {
       if (what === 'cancel') { setPairing(null); return }
-      if (what === 'disconnect') { forget(); setConn(null); navigate('/connect', true); return }
-      const base = serverBase(server || '')
-      if (!base) { toast('Type the address of your server, such as 192.168.1.20:9797.'); return }
-      setBusy('Asking the server…')
-      try { const p = await startPairing(base, 'WittyReader'); setPairing({ ...p, shown: p.pin }) } catch (e) { toast((e as Error).message) } finally { setBusy('') }
+      const base = originOf(server || '')
+      if (!base) { toast('Type just the server’s address, such as 192.168.1.20:9797: no path, no sign-in, no wildcard.'); return }
+      if (!bridge) { toast('Connecting needs the WittyReader desktop app.'); return }
+      // The page's policy lets it call only the servers added: the desktop app adds this one and reloads the page, which carries on.
+      if (!(await bridge.servers?.())?.includes(base)) { if (!(await bridge.addServer?.(base, '/connect?pair=' + encodeURIComponent(base)))) toast('That server could not be added (up to eight).'); return }
+      await beginPairing(base)
+    },
+    server: async (what, server) => {
+      const base = originOf(server)
+      if (!base) return
+      if (what === 'use') { setServers(use(base)); return }
+      setServers(forget(base))
+      await bridge?.removeServer?.(base) // the page's policy loses the origin, and the page reloads
     },
     finishWelcome: () => { finishFirstRun(); navigate('/', true) },
   }), [toast, refresh])
