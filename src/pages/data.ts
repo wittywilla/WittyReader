@@ -10,7 +10,7 @@ export const DICT_KEY = 'wittyreader.dictionary'
 export const dictionaryOn = () => { try { return localStorage.getItem(DICT_KEY) === '1' } catch { return false } }
 
 /** Reads what the pages are made from: the library, its notes, the settings and the themes. */
-export async function loadData(version: string): Promise<Data> {
+export async function loadData(version: string, extra: Pick<Data, 'server' | 'pairing'> = {}): Promise<Data> {
   const [bs, ns] = await Promise.all([books.all(), notes.all()])
   const covered = new Set<string>()
   for (const b of bs) if (b.cover) { registerCover(b.key, b.cover); covered.add(b.key) }
@@ -21,6 +21,6 @@ export async function loadData(version: string): Promise<Data> {
   return {
     books: bs, notes: all, hasCover: (k) => covered.has(k), dictionary: dictionaryOn(), version, used: used || undefined,
     looks: EXPERIENCES.map((e) => ({ id: e.id, name: e.name, tagline: e.tagline, description: e.description, theme: e.theme, preview: e.preview })),
-    themes: themes(), look: savedLook(), theme: savedTheme(),
+    themes: themes(), look: savedLook(), theme: savedTheme(), ...extra,
   }
 }

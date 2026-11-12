@@ -28,7 +28,7 @@ const data = (o = {}) => ({ books, notes, hasCover: (k) => k === 'Alpha', dictio
 const RESOLVED = new Set(['Card', 'DetailHeader', 'FilterBar', 'SearchBox', 'ListItem', 'Banner', 'Grid', 'Shelf', 'NativeView'])
 const walk = (n, f, parent) => { f(n, parent); for (const c of n.children || []) walk(c, f, n) }
 const sizes = [[390, 844], [1280, 800]]
-const cases = [['reader-library', ''], ['reader-library', 'q=zzz'], ['reader-library', 'kind=pdf&sort=title'], ['reader-book', 'item=Alpha'], ['reader-notes', ''], ['reader-notes', 'kind=highlight&withNote=1'], ['reader-import', ''], ['reader-settings', ''], ['reader-welcome', '']]
+const cases = [['reader-library', ''], ['reader-library', 'q=zzz'], ['reader-library', 'kind=pdf&sort=title'], ['reader-book', 'item=Alpha'], ['reader-notes', ''], ['reader-notes', 'kind=highlight&withNote=1'], ['reader-import', ''], ['reader-settings', ''], ['reader-welcome', ''], ['reader-connect', '']]
 
 for (const [id, q] of cases) for (const [w, h] of sizes) {
   test(`${id}${q ? '?' + q : ''} at ${w}: valid against the catalogue and drawable`, () => {
@@ -67,6 +67,7 @@ test('every action a page carries is one the app answers', () => {
   const ops = new Set(COMMANDS.map((c) => c.op))
   for (const [id, q] of cases) {
     walk(page(id, new URLSearchParams(q), data(), layoutFor(1280, 800)).root, (n) => {
+      if (n.type === 'Form') return // its command is completed by Save, with the controls' values
       const acts = [n.action, ...(n.props?.actions || []).map((b) => b.action)].filter(Boolean)
       for (const a of acts) {
         const step = plan(a)

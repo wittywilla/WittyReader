@@ -8,6 +8,8 @@ import { exportNotesFile, importFile, importNotesFile, openBook } from './books'
 import { Shell } from './Shell'
 import { books } from './store'
 import { dictionaryOn, DICT_KEY, loadData } from './pages/data'
+import { forget, keep, placed, pollPairing, saved, SERVER_RULES, serverBase, startPairing, type Pairing } from './pages/connection.ts'
+import { remote } from './pages/remote.ts'
 import { navigation, page as buildDocument, registerCommands, ROUTES } from './pages/local.ts'
 import { layoutFor } from './pages/doc.ts'
 import { bookOfShelfId } from './pages/shelfHost'
@@ -47,7 +49,10 @@ function useWindow() {
 
 export default function App() {
   const loc = useLocation()
-  const route = useMemo(() => resolve(loc.pathname, loc.search, ROUTES), [loc.pathname, loc.search])
+  // Connected to a server (its pages under /s), or pairing with one.
+  const [conn, setConn] = useState(saved)
+  const [pairing, setPairing] = useState<(Pairing & { shown: string; error?: string }) | null>(null)
+  const route = useMemo(() => resolve(loc.pathname, loc.search, conn ? [...ROUTES, ...SERVER_RULES] : ROUTES), [loc.pathname, loc.search, conn])
   const size = useWindow()
   const [version, setVersion] = useState(0) // changes when what a page is made from does
   const [doc, setDoc] = useState<Document | null | undefined>(undefined)
@@ -79,6 +84,21 @@ export default function App() {
     return () => window.removeEventListener('popstate', open)
   }, [])
 
+  // While pairing, the server is asked every few seconds: approved, the token is kept and the server's pages open.
+  useEffect(() => {
+    if (!pairing) return
+    const p = pairing
+    const t = setInterval(async () => {
+      try {
+        const r = await pollPairing(p)
+        if (r.status === 'approved' && r.token) { const c = { base: p.base, token: r.token, user: r.user }; keep(c); setConn(c); setPairing(null); navigate('/s', true); toast('Connected.') }
+        else if (r.status === 'denied' || r.status === 'expired' || r.status === 'locked') { setPairing(null); toast(r.status === 'denied' ? 'The server refused this device.' : 'That code ran out. Start again.') }
+        else if (r.pin && r.pin !== p.shown) setPairing((cur) => (cur ? { ...cur, shown: r.pin! } : cur))
+      } catch { setPairing((cur) => (cur ? { ...cur, error: 'Can’t reach the server right now. Still trying.' } : cur)) }
+    }, p.intervalSec * 1000)
+    return () => clearInterval(t)
+  }, [pairing?.sessionId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // The first time, the app asks how it should look.
   useEffect(() => { if (!firstRunDone() && loc.pathname !== '/welcome' && !reading) navigate('/welcome', true) }, [loc.pathname, reading])
 
@@ -88,13 +108,18 @@ export default function App() {
   useEffect(() => {
     if (!route || route.kind !== 'page') { setDoc(undefined); return }
     let live = true
-    loadData(VERSION).then((data) => {
+    // A page of the connected server: asked for from it, and drawn by the same renderer.
+    if (conn && route.page.startsWith('server:')) {
+      remote(conn).page(route.page.slice(7), device, Object.fromEntries([...new URLSearchParams(loc.search), ...Object.entries(route.params)])).then((d) => live && setDoc(placed(d))).catch((e: Error) => { if (live) { toast(e.message); setDoc(null) } })
+      return () => { live = false }
+    }
+    loadData(VERSION, { server: conn ? { base: conn.base, user: conn.user } : undefined, pairing: pairing ? { base: pairing.base, pin: pairing.shown, approveUrl: pairing.approveUrl, error: pairing.error } : undefined }).then((data) => {
       if (!live) return
       const layout = layoutFor(size.w, size.h, { touch: device.capabilities.includes('touch') && !device.capabilities.includes('pointer'), desktopShell: device.platform === 'desktop', reducedMotion: device.capabilities.includes('reducedMotion') })
       setDoc(buildDocument(route.page, new URLSearchParams([...new URLSearchParams(loc.search), ...Object.entries(route.params)]), data, layout))
     }).catch(() => live && setDoc(null))
     return () => { live = false }
-  }, [route, loc.search, version, size.w, size.h, device])
+  }, [route, loc.search, version, size.w, size.h, device, conn, pairing, toast])
   useEffect(() => { document.title = doc ? `${doc.page.title} · WittyReader` : 'WittyReader' }, [doc])
 
   // ---- what a page's commands do
@@ -115,6 +140,14 @@ export default function App() {
     setLook: async (id) => { await chooseLook(id); refresh() },
     removeTheme: async (id) => { await removeImported(id); refresh() },
     refresh,
+    connect: async (what, server) => {
+      if (what === 'cancel') { setPairing(null); return }
+      if (what === 'disconnect') { forget(); setConn(null); navigate('/connect', true); return }
+      const base = serverBase(server || '')
+      if (!base) { toast('Type the address of your server, such as 192.168.1.20:9797.'); return }
+      setBusy('Asking the server…')
+      try { const p = await startPairing(base, 'WittyReader'); setPairing({ ...p, shown: p.pin }) } catch (e) { toast((e as Error).message) } finally { setBusy('') }
+    },
     finishWelcome: () => { finishFirstRun(); navigate('/', true) },
   }), [toast, refresh])
 
@@ -208,7 +241,7 @@ export default function App() {
 
   const back = () => navigate('/')
   return (
-    <Shell navigation={navigation(device.formFactor)} addBooks={() => picker.current?.click()}>
+    <Shell navigation={navigation(device.formFactor, !!conn)} addBooks={() => picker.current?.click()}>
       {doc === undefined ? <div className="wr-wait"><div className="spinner" /></div>
         : doc === null || !route ? <div className="wr-gone"><h2>That page isn’t here</h2><p className="muted">A book may have been removed from this device.</p><button className="btn primary" onClick={back}>Back to your library</button></div>
           : <PageView doc={doc} device={device} handlers={handlers} />}

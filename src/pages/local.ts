@@ -17,6 +17,9 @@ export type Data = {
   books: Book[]; notes: Note[]; hasCover: (key: string) => boolean
   dictionary: boolean; version: string; used?: string
   looks: LookChoice[]; themes: ThemeChoice[]; look: string; theme: string
+  // The server this app is connected to, or a pairing in progress (src/pages/connection.ts).
+  server?: { base: string; user?: string }
+  pairing?: { base: string; pin: string; approveUrl: string; error?: string }
 }
 
 /** The addresses of the app: a page is asked for by id, or one of the app's own screens (the reading surface) is opened. */
@@ -29,6 +32,7 @@ export const ROUTES: RouteRule[] = [
   { route: '/import', page: 'reader-import' },
   { route: '/settings', page: 'reader-settings' },
   { route: '/welcome', page: 'reader-welcome' },
+  { route: '/connect', page: 'reader-connect' },
   { route: '/read/{item}', native: 'reader' },
 ]
 
@@ -43,13 +47,16 @@ export const COMMANDS: CommandSpec[] = [
   { op: 'reader.look.set', method: 'POST', path: '/api/v1/reader/look/{id}', params: [{ name: 'id', type: 'string', required: true }] },
   { op: 'reader.theme.remove', method: 'POST', path: '/api/v1/reader/themes/{id}/remove', params: [{ name: 'id', type: 'string', required: true }] },
   { op: 'reader.setting.set', method: 'POST', path: '/api/v1/reader/settings/{module}/{key}', body: '{"value":"{value}"}', params: [{ name: 'module', type: 'string', required: true }, { name: 'key', type: 'string', required: true }, { name: 'value', type: 'string' }] },
+  { op: 'reader.connect.start', method: 'POST', path: '/api/v1/reader/connect/start', body: '{"server":"{server}"}', params: [{ name: 'server', type: 'string', required: true }] },
+  { op: 'reader.connect.cancel', method: 'POST', path: '/api/v1/reader/connect/cancel' },
+  { op: 'reader.disconnect', method: 'POST', path: '/api/v1/reader/connect/disconnect' },
   { op: 'reader.welcome.done', method: 'POST', path: '/api/v1/reader/welcome/done' },
 ]
 export const registerCommands = () => setCommandSpecs(COMMANDS)
 
-export function navigation(formFactor: string): Navigation {
+export function navigation(formFactor: string, connected = false): Navigation {
   const item = (id: string, label: string, icon: string, route: string) => ({ id, label, icon, kind: 'page', page: id, route, placement: 'primary' })
-  return { version: VERSION, formFactor, items: [item('reader-library', 'Library', 'library', '/'), item('reader-shelf', 'Shelf', 'book', '/shelf'), item('reader-notes', 'Notes', 'list', '/notes'), item('reader-import', 'Import', 'download', '/import'), item('reader-settings', 'Settings', 'settings', '/settings')] }
+  return { version: VERSION, formFactor, items: [item('reader-library', 'Library', 'library', '/'), item('reader-shelf', 'Shelf', 'book', '/shelf'), item('reader-notes', 'Notes', 'list', '/notes'), item('reader-import', 'Import', 'download', '/import'), ...(connected ? [item('server', 'Server', 'globe', '/s')] : []), item('reader-settings', 'Settings', 'settings', '/settings')] }
 }
 
 const cover = (b: Book, has: boolean) => (has ? { url: coverPath(b.key), aspect: '2/3', kind: 'poster' } : undefined)
@@ -184,6 +191,8 @@ function settingsPage(data: Data): Node[] {
   const imported = data.themes.filter((t) => t.imported)
   return [
     list('reading', 'Reading', [n('ListItem', 'dict', { title: 'Look up words online', subtitle: 'Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.', icon: 'globe', control: { type: 'switch', name: 'dictionary', value: data.dictionary } }, { action: cmd('reader.dictionary.toggle', undefined, { value: !data.dictionary }) })]),
+    // The Connect to a server row (nav('/connect')) is left out until the owner decides on the app's content security policy: a built app only
+    // calls its own address and the dictionary, so a connection would be refused (docs/SDUI-ARCHITECTURE.md). The page itself works: /connect.
     ...moduleSettings(),
     ...pickers(data),
     stack('theme-import', [button('import-theme', 'Import a theme…', cmd('reader.pick', undefined, { what: 'theme' }), { icon: 'plus' })], { direction: 'row' }),
@@ -198,6 +207,33 @@ function settingsPage(data: Data): Node[] {
   ]
 }
 
+function connectPage(data: Data): Node[] {
+  if (data.pairing) {
+    const p = data.pairing
+    return [
+      text('wait', `Waiting for approval from ${p.base}`, 'title'),
+      text('how', 'On a device that is signed in to that server, scan this code or open its address, and type the PIN below. This device is signed in once you approve it.'),
+      n('QR', 'qr', { value: p.approveUrl, label: 'Approve this device', size: 'l' }),
+      text('pin', p.pin ? p.pin.replace(/(\d{3})(\d+)/, '$1 $2') : '…', 'display', { align: 'center' }),
+      ...(p.error ? [notice('err', p.error, { tone: 'warning', icon: 'warning' })] : []),
+      stack('cancel', [button('cancel-btn', 'Cancel', cmd('reader.connect.cancel'), { variant: 'ghost' })], { direction: 'row' }),
+    ]
+  }
+  if (data.server) {
+    return [
+      notice('on', `This app is connected to ${data.server.base}${data.server.user ? ` as ${data.server.user}` : ''}. Its pages are under Server; your library, notes and settings stay on this device.`, { tone: 'success', icon: 'check', title: 'Connected' }),
+      list('server', 'Server', [row('open', 'Open the server’s pages', { icon: 'globe', action: nav('/s') })]),
+      stack('off', [button('off-btn', 'Disconnect', { ...cmd('reader.disconnect'), confirm: 'Disconnect from this server? Your library stays on this device.' }, { icon: 'warning' })], { direction: 'row' }),
+    ]
+  }
+  return [
+    text('why', 'Connect WittyReader to a WittyMediaServer to read its books here too. Nothing is typed but the server’s address: the server shows you a code to approve from a device you are already signed in on. Without a server the app works as it always has.'),
+    n('Form', 'connect', { submitLabel: 'Connect' }, { action: cmd('reader.connect.start'), children: [
+      list('form', 'Server', [n('ListItem', 'server', { title: 'Address', subtitle: 'For example 192.168.1.20:9797', control: { type: 'field', name: 'server', value: '', placeholder: '192.168.1.20:9797' } })]),
+    ] }),
+  ]
+}
+
 function welcomePage(data: Data): Node[] {
   return [
     text('hi', 'Welcome to WittyReader. Choose how it looks; you can change this any time in Settings.', 'title'),
@@ -206,7 +242,7 @@ function welcomePage(data: Data): Node[] {
   ]
 }
 
-export const PAGES = ['reader-library', 'reader-shelf', 'reader-book', 'reader-notes', 'reader-import', 'reader-settings', 'reader-welcome'] as const
+export const PAGES = ['reader-library', 'reader-shelf', 'reader-book', 'reader-notes', 'reader-import', 'reader-settings', 'reader-welcome', 'reader-connect'] as const
 const INFO: Record<string, { title: string; kind: string; icon: string; route: string }> = {
   'reader-library': { title: 'Library', kind: 'books', icon: 'library', route: '/' },
   'reader-shelf': { title: 'Bookshelf', kind: 'books', icon: 'book', route: '/shelf' },
@@ -215,6 +251,7 @@ const INFO: Record<string, { title: string; kind: string; icon: string; route: s
   'reader-notes': { title: 'Notes', kind: 'search', icon: 'list', route: '/notes' },
   'reader-import': { title: 'Import', kind: 'custom', icon: 'download', route: '/import' },
   'reader-settings': { title: 'Settings', kind: 'custom', icon: 'settings', route: '/settings' },
+  'reader-connect': { title: 'Connect to a server', kind: 'custom', icon: 'devices', route: '/connect' },
   'reader-welcome': { title: 'Welcome', kind: 'custom', icon: 'sparkles', route: '/welcome' },
 }
 
@@ -230,6 +267,7 @@ export function page(id: string, params: URLSearchParams, data: Data, layout: La
     case 'reader-notes': kids = notesPage(data, params); break
     case 'reader-import': kids = importPage(); break
     case 'reader-settings': kids = settingsPage(data); break
+    case 'reader-connect': kids = connectPage(data); break
     default: kids = welcomePage(data)
   }
   if (!kids) return null

@@ -21,13 +21,14 @@ export type Host = {
   removeTheme: (id: string) => Promise<void>
   finishWelcome: () => void
   refresh: () => void
+  connect: (what: 'start' | 'cancel' | 'disconnect', server?: string) => Promise<void>
 }
 
 type Body = Record<string, string> | undefined
 const ROUTE: [RegExp, string][] = [
   [/^\/reader\/pick\/(books|notes|theme)$/, 'pick'], [/^\/reader\/books\/([^/]+)\/remove$/, 'remove'], [/^\/reader\/books\/([^/]+)\/export$/, 'export'],
   [/^\/reader\/notes\/export\/(md|json)$/, 'notes'], [/^\/reader\/dictionary\/toggle$/, 'dictionary'], [/^\/reader\/theme\/([^/]+)$/, 'theme'], [/^\/reader\/look\/([^/]+)$/, 'look'],
-  [/^\/reader\/themes\/([^/]+)\/remove$/, 'removeTheme'], [/^\/reader\/welcome\/done$/, 'welcome'], [/^\/reader\/settings\/([a-z]+)\/([A-Za-z]+)$/, 'setting'],
+  [/^\/reader\/themes\/([^/]+)\/remove$/, 'removeTheme'], [/^\/reader\/welcome\/done$/, 'welcome'], [/^\/reader\/connect\/(start|cancel|disconnect)$/, 'connect'], [/^\/reader\/settings\/([a-z]+)\/([A-Za-z]+)$/, 'setting'],
 ]
 
 export const noteFilter = (b: Body): NoteFilter => ({ book: b?.book || undefined, kind: (b?.kind || 'all') as NoteFilter['kind'], color: b?.color || undefined, q: b?.q || undefined, withNote: b?.withNote === '1' })
@@ -55,6 +56,7 @@ export async function request(method: string, path: string, body: Body, host: Ho
     case 'look': await host.setLook(arg); break
     case 'removeTheme': await host.removeTheme(arg); break
     case 'welcome': host.finishWelcome(); break
+    case 'connect': await host.connect(arg as 'start', body?.server); break
     case 'setting': {
       // Only a key the module has, and a value its row allows.
       const row = settingRow(arg, decodeURIComponent(m![2]))
