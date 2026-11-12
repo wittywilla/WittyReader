@@ -1,0 +1,184 @@
+{
+  "themes": [
+    {
+      "id": "default",
+      "name": "Witty",
+      "description": "The house look: deep slate with a violet accent.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#0f1115",
+        "surface": "#1f232c",
+        "text": "#e8eaf0",
+        "accent": "#7955ff"
+      }
+    },
+    {
+      "id": "aeroday",
+      "name": "Aero Day",
+      "description": "Sky blue glass: gloss, gradients and a leaf-green hill.",
+      "scheme": "light",
+      "preview": {
+        "bg": "#cfeeff",
+        "surface": "#e7f6ff",
+        "text": "#0b3a5a",
+        "accent": "#166fa1"
+      }
+    },
+    {
+      "id": "aeromeadow",
+      "name": "Aero Meadow",
+      "description": "Spring green glass over a bright meadow.",
+      "scheme": "light",
+      "preview": {
+        "bg": "#d9f5cc",
+        "surface": "#ecfae4",
+        "text": "#0d3a22",
+        "accent": "#217a36"
+      }
+    },
+    {
+      "id": "aerosunset",
+      "name": "Aero Sunset",
+      "description": "Golden-hour glass, orange to pink to violet.",
+      "scheme": "light",
+      "preview": {
+        "bg": "#ffd9b8",
+        "surface": "#ffe9d6",
+        "text": "#4a1b3a",
+        "accent": "#b23800"
+      }
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "description": "Clean, bright grey with a violet accent.",
+      "scheme": "light",
+      "preview": {
+        "bg": "#f4f5f8",
+        "surface": "#eaedf2",
+        "text": "#15171c",
+        "accent": "#6d4fe0"
+      }
+    },
+    {
+      "id": "paper",
+      "name": "Paper",
+      "description": "Warm off-white and rust, easy on the eyes by day.",
+      "scheme": "light",
+      "preview": {
+        "bg": "#f6f2ea",
+        "surface": "#ece6da",
+        "text": "#221d16",
+        "accent": "#a14b1b"
+      }
+    },
+    {
+      "id": "aeroaurora",
+      "name": "Aero Aurora",
+      "description": "Night glass: deep blue to teal, with a cyan glow.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#0b2a4a",
+        "surface": "#194a74",
+        "text": "#eaf6ff",
+        "accent": "#38c6f4"
+      }
+    },
+    {
+      "id": "cable",
+      "name": "Cable blue",
+      "description": "A cable guide: deep blue, white text and yellow highlights.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#08125e",
+        "surface": "#0f2bb8",
+        "text": "#ffffff",
+        "accent": "#ffd84a"
+      }
+    },
+    {
+      "id": "cinema",
+      "name": "Cinema",
+      "description": "Warm near-black and amber, for a dim room.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#14110e",
+        "surface": "#25201b",
+        "text": "#f2ece4",
+        "accent": "#e8a33a"
+      }
+    },
+    {
+      "id": "evergreen",
+      "name": "Evergreen",
+      "description": "Dark forest tones with a fresh green.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#0d1512",
+        "surface": "#1b2823",
+        "text": "#e6efe9",
+        "accent": "#2fb67c"
+      }
+    },
+    {
+      "id": "contrast",
+      "name": "High contrast",
+      "description": "Black and white with bright yellow, for the clearest reading.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#000000",
+        "surface": "#141414",
+        "text": "#ffffff",
+        "accent": "#ffe14d"
+      }
+    },
+    {
+      "id": "midnight",
+      "name": "Midnight",
+      "description": "Blue-black, with a clear blue accent.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#0b1120",
+        "surface": "#18233b",
+        "text": "#e6ecf7",
+        "accent": "#2f6fed"
+      }
+    },
+    {
+      "id": "satellite",
+      "name": "Satellite",
+      "description": "Silver bars on dark teal with orange highlights.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#0c1418",
+        "surface": "#1f3540",
+        "text": "#eef3f6",
+        "accent": "#ff8a1f"
+      }
+    },
+    {
+      "id": "teletext",
+      "name": "Teletext",
+      "description": "Eight bright colours on black and blue, as teletext has.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#000000",
+        "surface": "#00005a",
+        "text": "#ffffff",
+        "accent": "#ffff00"
+      }
+    },
+    {
+      "id": "oled",
+      "name": "True black",
+      "description": "Pure black, kind to OLED screens at night.",
+      "scheme": "dark",
+      "preview": {
+        "bg": "#000000",
+        "surface": "#141417",
+        "text": "#f2f2f5",
+        "accent": "#7955ff"
+      }
+    }
+  ]
+}

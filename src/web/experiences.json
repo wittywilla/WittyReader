@@ -1,0 +1,700 @@
+{
+  "$comment": "Written by scripts/sync-web.mjs from WittyMediaServer pkg/sdui/experiences.",
+  "experiences": [
+    {
+      "id": "lumen",
+      "order": 1,
+      "name": "Lumen",
+      "tagline": "Quiet cinema",
+      "icon": "play",
+      "description": "Top pills, a billboard spotlight and rows that peek at the next card. The default.",
+      "theme": "default",
+      "tvTheme": "modern",
+      "nav": {
+        "web": "topTabs",
+        "desktop": "topTabs",
+        "tablet": "topTabs",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1.4,
+        "cardSet": "poster"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "default"
+      },
+      "preview": {
+        "bg": "#0f1115",
+        "surface": "#1f232c",
+        "accent": "#7955ff"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "rail",
+      "order": 2,
+      "name": "Rail",
+      "tagline": "Library first",
+      "icon": "library",
+      "description": "An icon rail that opens into a full menu and a drawer for each library, with title-on-art cards.",
+      "theme": "cinema",
+      "tvTheme": "classic",
+      "nav": {
+        "web": "railDrawer",
+        "desktop": "railDrawer",
+        "tablet": "railDrawer",
+        "phone": "bottomTabs",
+        "tv": "tvSideMenu",
+        "headset": "ornamentTabs"
+      },
+      "navExpand": "drawer",
+      "pages": {
+        "hero": "banner",
+        "cardStyle": "plate"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1.4,
+        "cardSet": "plate"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "slide"
+      },
+      "home": {
+        "hero": "banner",
+        "rows": "library"
+      },
+      "preview": {
+        "bg": "#120e0a",
+        "surface": "#261d14",
+        "accent": "#d98a1c"
+      }
+    },
+    {
+      "id": "stage",
+      "order": 3,
+      "name": "Stage",
+      "tagline": "Streaming",
+      "icon": "tv",
+      "description": "A see-through menu over a full-bleed spotlight, then rows of wide cards that overlap the art.",
+      "theme": "midnight",
+      "tvTheme": "bigpicture",
+      "overlay": true,
+      "nav": {
+        "web": "topTabs",
+        "desktop": "topTabs",
+        "tablet": "topTabs",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard",
+        "cardStyle": "landscape",
+        "seeAllCard": true,
+        "density": "comfortable"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "subtle",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1.2,
+        "cardSet": "landscape"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "overlap"
+      },
+      "preview": {
+        "bg": "#0b1120",
+        "surface": "#18233b",
+        "accent": "#2f6fed"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "aero",
+      "order": 4,
+      "name": "Aero",
+      "tagline": "Glossy glass",
+      "icon": "sparkles",
+      "description": "Glossy glass bars, bevelled pills, sky and leaf gradients and rounded corners. Gloss and gradients, no heavy blur.",
+      "theme": "aeroday",
+      "tvTheme": "modern",
+      "nav": {
+        "web": "floatingGlassBar",
+        "desktop": "floatingGlassBar",
+        "tablet": "floatingGlassBar",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard"
+      },
+      "effects": {
+        "glass": "full",
+        "gloss": "full",
+        "glow": "subtle",
+        "texture": "none",
+        "bevel": "full"
+      },
+      "shape": {
+        "radiusMultiple": 2,
+        "cardSet": "poster"
+      },
+      "type": "rounded",
+      "density": "comfortable",
+      "motion": {
+        "focus": "glow",
+        "screen": "fade",
+        "overshoot": true
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "default"
+      },
+      "preview": {
+        "bg": "#bfeaff",
+        "surface": "#e7f6ff",
+        "accent": "#1e9be0"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "classic",
+      "order": 5,
+      "name": "Classic",
+      "tagline": "Sidebar",
+      "icon": "list",
+      "description": "The menu down the side, a tab bar on a phone and the top menu on a television. Today's design, polished.",
+      "theme": "default",
+      "tvTheme": "modern",
+      "nav": {
+        "web": "sidebar",
+        "desktop": "sidebar",
+        "tablet": "sidebar",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1,
+        "cardSet": "poster"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "default"
+      },
+      "preview": {
+        "bg": "#0f1115",
+        "surface": "#1f232c",
+        "accent": "#7955ff"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "classicCable",
+      "order": 6,
+      "name": "Classic Cable",
+      "tagline": "Blue guide",
+      "icon": "guide",
+      "description": "Flat blue rows, yellow highlights and coloured band headings, like a cable guide.",
+      "theme": "cable",
+      "tvTheme": "classic",
+      "nav": {
+        "web": "cableBar",
+        "desktop": "cableBar",
+        "tablet": "cableBar",
+        "phone": "bottomTabs",
+        "tv": "cableBar",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "row",
+        "cardStyle": "landscape",
+        "rowsAsLists": true,
+        "sectionStyle": "band"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 0,
+        "cardSet": "list"
+      },
+      "type": "mono",
+      "density": "compact",
+      "motion": {
+        "focus": "fill",
+        "screen": "cut"
+      },
+      "home": {
+        "hero": "row",
+        "rows": "list"
+      },
+      "preview": {
+        "bg": "#08125e",
+        "surface": "#0f2bb8",
+        "accent": "#ffd84a"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "classicSatellite",
+      "order": 7,
+      "name": "Classic Satellite",
+      "tagline": "Silver bars",
+      "icon": "live",
+      "description": "Silver bevelled bars, orange highlights and logo tiles for channels.",
+      "theme": "satellite",
+      "tvTheme": "satellite",
+      "nav": {
+        "web": "bevelBar",
+        "desktop": "bevelBar",
+        "tablet": "bevelBar",
+        "phone": "bottomTabs",
+        "tv": "bevelBar",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard",
+        "sectionStyle": "underline"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "subtle",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "full"
+      },
+      "shape": {
+        "radiusMultiple": 0.6,
+        "cardSet": "poster"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "default"
+      },
+      "preview": {
+        "bg": "#0c1418",
+        "surface": "#1f3540",
+        "accent": "#ff8a1f"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "compact",
+      "order": 8,
+      "name": "Compact",
+      "tagline": "Dense lists",
+      "icon": "list",
+      "description": "A rail and a line per title: the most on the screen at once, for power users and long libraries.",
+      "theme": "oled",
+      "tvTheme": "compact",
+      "nav": {
+        "web": "rail",
+        "desktop": "rail",
+        "tablet": "rail",
+        "phone": "bottomTabs",
+        "tv": "tvSideMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "row",
+        "rowsAsLists": true,
+        "density": "compact"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 0.8,
+        "cardSet": "row"
+      },
+      "type": "system",
+      "density": "compact",
+      "motion": {
+        "focus": "ring",
+        "screen": "cut"
+      },
+      "home": {
+        "hero": "row",
+        "rows": "list"
+      },
+      "preview": {
+        "bg": "#000000",
+        "surface": "#151515",
+        "accent": "#4da3ff"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "paper",
+      "order": 9,
+      "name": "Paper",
+      "tagline": "Editorial",
+      "icon": "book",
+      "description": "Top tabs, big serif type and generous space, on warm paper.",
+      "theme": "paper",
+      "tvTheme": "listings",
+      "nav": {
+        "web": "topTabs",
+        "desktop": "topTabs",
+        "tablet": "topTabs",
+        "phone": "topTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "banner",
+        "sectionStyle": "underline"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 0.4,
+        "cardSet": "poster"
+      },
+      "type": "serif",
+      "density": "spacious",
+      "motion": {
+        "focus": "ring",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "banner",
+        "rows": "default"
+      },
+      "preview": {
+        "bg": "#f6f0e6",
+        "surface": "#e6dccb",
+        "accent": "#b4491f"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "marquee",
+      "order": 10,
+      "name": "Marquee",
+      "tagline": "Poster carousel",
+      "icon": "movie",
+      "description": "One big title at a time in a centred carousel of posters.",
+      "theme": "cinema",
+      "tvTheme": "bigpicture",
+      "nav": {
+        "web": "topTabs",
+        "desktop": "topTabs",
+        "tablet": "topTabs",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "carousel",
+        "cardSize": "l"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "subtle",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1,
+        "cardSet": "carousel"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "carousel",
+        "rows": "carousel"
+      },
+      "preview": {
+        "bg": "#140d0d",
+        "surface": "#2a1a1a",
+        "accent": "#e0a030"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "crossbar",
+      "order": 11,
+      "name": "Crossbar",
+      "tagline": "Console style",
+      "icon": "game",
+      "description": "A horizontal bar of categories with a vertical list under the chosen one. Games and music first.",
+      "theme": "evergreen",
+      "tvTheme": "satellite",
+      "nav": {
+        "web": "crossbar",
+        "desktop": "crossbar",
+        "tablet": "crossbar",
+        "phone": "bottomTabs",
+        "tv": "crossbar",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "row",
+        "crossbar": true
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "subtle",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1.6,
+        "cardSet": "tile"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "glow",
+        "screen": "slide"
+      },
+      "home": {
+        "hero": "row",
+        "rows": "crossbar"
+      },
+      "preview": {
+        "bg": "#07140f",
+        "surface": "#153027",
+        "accent": "#3ddc84"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "bigpicture",
+      "order": 12,
+      "name": "Big picture",
+      "tagline": "Easy to see",
+      "icon": "tv",
+      "description": "Huge tiles, few choices and the strongest focus, with larger type and targets.",
+      "theme": "contrast",
+      "tvTheme": "bigpicture",
+      "nav": {
+        "web": "topTabs",
+        "desktop": "topTabs",
+        "tablet": "topTabs",
+        "phone": "bottomTabs",
+        "tv": "tvTopMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "billboard",
+        "gridsAsRows": true,
+        "cardSize": "l",
+        "cardStyle": "tile",
+        "seeAllCard": true
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 2.4,
+        "cardSet": "tile"
+      },
+      "type": "system",
+      "density": "spacious",
+      "motion": {
+        "focus": "ring-lift",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "billboard",
+        "rows": "tiles"
+      },
+      "preview": {
+        "bg": "#000000",
+        "surface": "#1a1a1a",
+        "accent": "#ffd84a"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "dashboard",
+      "order": 13,
+      "name": "Dashboard",
+      "tagline": "Widgets",
+      "icon": "chart",
+      "description": "A tile grid of widgets: continue watching, on TV now, statistics, server status, a clock. Every tile movable.",
+      "theme": "midnight",
+      "tvTheme": "outline",
+      "nav": {
+        "web": "rail",
+        "desktop": "rail",
+        "tablet": "rail",
+        "phone": "bottomTabs",
+        "tv": "tvSideMenu",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "row",
+        "widgets": true
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 1.4,
+        "cardSet": "tile"
+      },
+      "type": "system",
+      "density": "comfortable",
+      "motion": {
+        "focus": "ring",
+        "screen": "fade"
+      },
+      "home": {
+        "hero": "row",
+        "rows": "widgets"
+      },
+      "preview": {
+        "bg": "#0d1117",
+        "surface": "#1b2430",
+        "accent": "#22c3b8"
+      },
+      "navExpand": ""
+    },
+    {
+      "id": "retro",
+      "order": 14,
+      "name": "Retro",
+      "tagline": "Teletext",
+      "icon": "tv",
+      "description": "Teletext and CRT: block type, eight colours and colour-coded keys. Scanlines are off until turned on.",
+      "theme": "teletext",
+      "tvTheme": "teletext",
+      "nav": {
+        "web": "teleKeys",
+        "desktop": "teleKeys",
+        "tablet": "teleKeys",
+        "phone": "bottomTabs",
+        "tv": "teleKeys",
+        "headset": "ornamentTabs"
+      },
+      "pages": {
+        "hero": "row",
+        "cardStyle": "block",
+        "rowsAsLists": true,
+        "sectionStyle": "band"
+      },
+      "effects": {
+        "glass": "none",
+        "gloss": "none",
+        "glow": "none",
+        "texture": "none",
+        "bevel": "none"
+      },
+      "shape": {
+        "radiusMultiple": 0,
+        "cardSet": "block"
+      },
+      "type": "mono",
+      "density": "compact",
+      "motion": {
+        "focus": "fill",
+        "screen": "cut"
+      },
+      "home": {
+        "hero": "row",
+        "rows": "list"
+      },
+      "preview": {
+        "bg": "#000000",
+        "surface": "#0000a8",
+        "accent": "#ffff00"
+      },
+      "navExpand": ""
+    }
+  ]
+}

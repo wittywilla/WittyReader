@@ -6,10 +6,18 @@ What changed in WittyReader, newest first. What changed before it had a reposito
 ## 0.2.0 (not released yet)
 
 - **A new icon** in the WittyMediaServer family's look: a ring with an open book inside and a coral dot, on the dark tile, at every size each system asks for (favicon, home-screen and maskable icons, and the desktop app's icons for macOS, Windows and Linux), with a disk-image background and installer pictures. All are drawn by WittyMediaServer's genicon: `scripts/sync-brand.sh` redraws them.
-- **Themes.** Settings → Look has WittyMediaServer's themes (Witty, Light, Paper, Cinema, Evergreen, High contrast, Midnight,
-  True black), and Match this device, which is the default and follows the system between dark and light. The library, menus and
-  the readers' panels follow it, and the desktop window's own colour matches, so it doesn't flash when it opens or resizes.
-  `scripts/sync-themes.mjs` copies the colours from the server's built-in themes.
+- **Every screen but the book is now a server-driven page (SDUI).** The library, a book's page, the notes list, Import, Settings and
+  the welcome page are documents of the server's catalogue (revision 7) made on the device by a local page provider and drawn by the
+  server's own renderer, copied into `src/web/` by `scripts/sync-web.mjs` (never edited: `npm test` checks every file's hash and, beside
+  a server checkout, the server's file). The reading surface stays native. How and why: `docs/SDUI-ARCHITECTURE.md`.
+- **A notes page** lists every highlight, bookmark and drawing from every book, with filters (book, type, colour, only with a written
+  note) and a search, and exports what is shown as Markdown or as backup files (one per book, in a ZIP when there are several).
+- **Look and Theme, as on the server.** The fifteen built-in themes (Witty, Midnight, Cinema, Evergreen, True black, Light, Paper, High
+  contrast, Aero Day, Aero Aurora, Aero Meadow, Aero Sunset, Cable blue, Satellite, Teletext) and the fourteen Looks (finish, shape, type
+  and density: glass, gloss and bevel on Aero, block type on Retro) are in Settings, with Match this device. The first start offers the
+  choice. **Import a theme** takes a ZIP of `theme.json`, `theme.css` and fonts or pictures, by the server's rules (variables and fonts
+  only, nothing that reaches another site). The app's wordmark takes the theme's brand colour. A book's page colours (page, sepia, night)
+  are the reader's own and don't change with the app's theme.
 - **Built and tested with the reader plugins 0.3.0** (WittyInk, WittyEbook, WittyPDF, WittyComics), now AGPL-3.0-or-later.
   `scripts/dev-modules.mjs` builds against plugin checkouts beside this one, before they're released; `package-lock.json`
   moves to their 0.3.0 commits once they are.

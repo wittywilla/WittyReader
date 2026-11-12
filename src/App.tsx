@@ -1,91 +1,158 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 WittyWilla and contributors
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import WittyComics from '@wittywilla/wittycomics'
 import WittyEbook from '@wittywilla/wittyebook'
-import { HostContext, IconClose, IconMore, IconSearch, IconSettings, type ReaderHost } from '@wittywilla/wittyink'
+import { HostContext, type ReaderHost } from '@wittywilla/wittyink'
 import { exportNotesFile, importFile, importNotesFile, openBook } from './books'
-import { books, type BookRec } from './store'
-import { chooseTheme, savedTheme, SYSTEM, THEMES } from './theme'
+import { Shell } from './Shell'
+import { books } from './store'
+import { dictionaryOn, DICT_KEY, loadData } from './pages/data'
+import { navigation, page as buildDocument, registerCommands, ROUTES } from './pages/local.ts'
+import { layoutFor } from './pages/doc.ts'
+import { PageView, type Handlers } from './pages/PageView'
+import { request, type Host } from './pages/requests.ts'
+import { chooseLook, chooseTheme, addImported, finishFirstRun, firstRunDone, removeImported } from './theme/engine'
+import { readThemeZip, ThemeError } from './theme/importTheme'
+import { IconPlus as IconAdd } from './web/icons'
+import { canGoBack, currentLocation, navigate, useLocation } from './web/router'
+import { describe } from './web/sdui/device.ts'
+import { plan, resolve, withQuery } from './web/sdui/routes.ts'
+import type { View } from './web/sdui/model.ts'
+import type { Action, Document } from './web/sdui/types.ts'
 
-// WittyReader: a library of books, PDFs and comics kept on this device, read
-// with the WittyEbook, WittyPDF and WittyComics plugins. Nothing leaves the
-// device unless the reader turns on the online dictionary.
+// WittyReader: a library of books, PDFs and comics kept on this device, read with the WittyEbook, WittyPDF and
+// WittyComics plugins. Every screen but the reading surface is a server-driven page (SDUI), made by the local
+// page provider (src/pages) and drawn by the server's own renderer (src/web): see docs/SDUI-ARCHITECTURE.md.
+// Nothing leaves the device unless the reader turns on the online dictionary.
 
 const WittyPDF = lazy(() => import('@wittywilla/wittypdf'))
-const DICT_KEY = 'wittyreader.dictionary'
 const ACCEPT = '.epub,.pdf,.cbz,application/epub+zip,application/pdf'
 const VERSION = __APP_VERSION__
-const SORT_KEY = 'wittyreader.sort'
+registerCommands()
+
+const save = (name: string, blob: Blob) => {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = name; a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function useWindow() {
+  const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => { const f = () => setSize({ w: window.innerWidth, h: window.innerHeight }); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f) }, [])
+  return size
+}
 
 export default function App() {
-  const [list, setList] = useState<BookRec[] | null>(null)
-  const [open, setOpen] = useState<{ host: ReaderHost; cleanup: () => void } | null>(null)
+  const loc = useLocation()
+  const route = useMemo(() => resolve(loc.pathname, loc.search, ROUTES), [loc.pathname, loc.search])
+  const size = useWindow()
+  const [version, setVersion] = useState(0) // changes when what a page is made from does
+  const [doc, setDoc] = useState<Document | null | undefined>(undefined)
   const [busy, setBusy] = useState('')
   const [drag, setDrag] = useState(false)
-  const [settings, setSettings] = useState(false)
-  const [dictionary, setDictionary] = useState(() => localStorage.getItem(DICT_KEY) === '1')
   const [msg, setMsg] = useState('')
-  const [q, setQ] = useState('')
-  const [kind, setKind] = useState<'all' | 'epub' | 'pdf' | 'cbz'>('all')
-  const [sort, setSort] = useState<'recent' | 'title' | 'author' | 'added'>(() => { try { return (localStorage.getItem(SORT_KEY) as any) || 'recent' } catch { return 'recent' } })
-  const setSortKept = (v: typeof sort) => { setSort(v); try { localStorage.setItem(SORT_KEY, v) } catch { /* ignore */ } }
   const picker = useRef<HTMLInputElement | null>(null)
   const notesPicker = useRef<HTMLInputElement | null>(null)
-  const msgTimer = useRef<any>(null)
-  const toast = useCallback((m: string) => { setMsg(m); clearTimeout(msgTimer.current); msgTimer.current = setTimeout(() => setMsg(''), 3500) }, [])
-  const refresh = useCallback(() => books.all().then((l) => setList(l.sort((a, b) => Math.max(b.opened, b.added) - Math.max(a.opened, a.added)))).catch(() => setList([])), [])
-  useEffect(() => { refresh() }, [refresh])
+  const themePicker = useRef<HTMLInputElement | null>(null)
+  const msgTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const toast = useCallback((m: string) => { setMsg(m); if (msgTimer.current) clearTimeout(msgTimer.current); msgTimer.current = setTimeout(() => setMsg(''), 3500) }, [])
+  const refresh = useCallback(() => setVersion((v) => v + 1), [])
+  const reading = route?.kind === 'native' && route.screen === 'reader' ? route.vars.item : ''
+  const dictionary = useRef(dictionaryOn())
 
-  const closeBook = useCallback(() => {
-    setOpen((cur) => { cur?.cleanup(); return null })
-    refresh()
-  }, [refresh])
-  // The browser's Back button (and Android's) closes the book.
+  // A book that was read has new progress: the library is made again when it closes.
+  useEffect(() => { if (!reading) refresh() }, [reading, refresh])
+
+  // The first time, the app asks how it should look.
+  useEffect(() => { if (!firstRunDone() && loc.pathname !== '/welcome' && !reading) navigate('/welcome', true) }, [loc.pathname, reading])
+
+  // ---- the page on screen: made from the library, drawn by the renderer
+  const device = useMemo(() => describe({ width: size.w, height: size.h, tvMode: false, desktopShell: !!(window as unknown as { wittyReaderDesktop?: unknown }).wittyReaderDesktop,
+    touch: matchMedia('(pointer: coarse)').matches, pointer: matchMedia('(pointer: fine)').matches, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, hdr: false, locale: navigator.language || 'en', uhd: false }), [size.w, size.h])
   useEffect(() => {
-    const pop = () => closeBook()
-    window.addEventListener('popstate', pop)
-    return () => window.removeEventListener('popstate', pop)
-  }, [closeBook])
+    if (!route || route.kind !== 'page') { setDoc(undefined); return }
+    let live = true
+    loadData(VERSION).then((data) => {
+      if (!live) return
+      const layout = layoutFor(size.w, size.h, { touch: device.capabilities.includes('touch') && !device.capabilities.includes('pointer'), desktopShell: device.platform === 'desktop', reducedMotion: device.capabilities.includes('reducedMotion') })
+      setDoc(buildDocument(route.page, new URLSearchParams([...new URLSearchParams(loc.search), ...Object.entries(route.params)]), data, layout))
+    }).catch(() => live && setDoc(null))
+    return () => { live = false }
+  }, [route, loc.search, version, size.w, size.h, device])
+  useEffect(() => { document.title = doc ? `${doc.page.title} · WittyReader` : 'WittyReader' }, [doc])
 
-  const read = async (rec: BookRec) => {
-    setBusy(`Opening ${rec.title}…`)
-    try {
-      const o = await openBook(rec, { toast, dictionary, close: () => history.back() })
-      history.pushState({ book: rec.key }, '')
-      setOpen(o)
-    } catch (e: any) { toast(e.message) } finally { setBusy('') }
-  }
+  // ---- what a page's commands do
+  const host: Host = useMemo(() => ({
+    toast,
+    pick: (what) => (what === 'books' ? picker : what === 'notes' ? notesPicker : themePicker).current?.click(),
+    removeBook: async (key) => {
+      const rec = await books.get(key)
+      if (!rec || !confirm(`Remove “${rec.title}” and its notes from this device?`)) return
+      await books.remove(key)
+      if (currentLocation().pathname.startsWith('/book/')) navigate('/', true)
+      refresh()
+    },
+    exportBook: async (key) => { const rec = await books.get(key); if (rec) await exportNotesFile(rec) },
+    notes: async () => (await loadData(VERSION)).notes,
+    save,
+    setDictionary: () => { dictionary.current = !dictionary.current; try { localStorage.setItem(DICT_KEY, dictionary.current ? '1' : '0') } catch { /* this visit only */ } refresh() },
+    setTheme: async (id) => { await chooseTheme(id); refresh() },
+    setLook: async (id) => { await chooseLook(id); refresh() },
+    removeTheme: async (id) => { if (confirm('Remove this imported theme?')) { await removeImported(id); refresh() } },
+    finishWelcome: () => { finishFirstRun(); navigate('/', true) },
+  }), [toast, refresh])
 
-  // New files: added to the library; a single file opens straight away.
-  const add = async (fileList: File[]) => {
+  const handlers: Handlers = useMemo(() => ({
+    act: (a: Action | undefined, from?: View) => {
+      void from
+      const step = plan(a)
+      switch (step.do) {
+        case 'go': navigate(step.to); break
+        case 'back': history.back(); break
+        case 'open': window.open(step.url, '_blank', 'noopener,noreferrer'); break
+        case 'tab': { const l = currentLocation(); navigate(withQuery(l.pathname, l.search, { tab: step.tab }), true); break }
+        case 'refresh': refresh(); break
+        case 'request': {
+          void request(step.method, step.path, step.body as Record<string, string> | undefined, host).catch((e: Error) => toast(e.message))
+          break
+        }
+        default: break
+      }
+    },
+    setQuery: (change) => { const l = currentLocation(); navigate(withQuery(l.pathname, l.search, change), true) },
+    // A right click on a book's card opens its page, where its actions are.
+    menu: (card) => { const id = card.node.props?.itemId; if (typeof id === 'string') navigate(`/book/${id}`) },
+  }), [host, refresh, toast])
+
+  // ---- adding files
+  const add = useCallback(async (fileList: File[]) => {
     if (!fileList.length) return
     navigator.storage?.persist?.().catch(() => {}) // ask the browser not to clear the library when space runs low
-    let last: BookRec | null = null
+    let last: string | null = null
     for (const f of fileList) {
       setBusy(`Adding ${f.name}…`)
-      try { last = await importFile(f) } catch (e: any) { toast(e.message) }
+      try { last = (await importFile(f)).key } catch (e) { toast((e as Error).message) }
     }
     setBusy('')
-    await refresh()
-    if (last && fileList.length === 1) read(last)
-  }
+    refresh()
+    if (last && fileList.length === 1) navigate(`/read/${last}`)
+  }, [refresh, toast])
+  const addRef = useRef(add)
+  addRef.current = add
 
-  // Files dropped on the window, or opened with WittyReader from the system
-  // once it is installed.
   useEffect(() => {
     const over = (e: DragEvent) => { if (e.dataTransfer?.types.includes('Files')) { e.preventDefault(); setDrag(true) } }
     const leave = (e: DragEvent) => { if (!e.relatedTarget) setDrag(false) }
-    const drop = (e: DragEvent) => { e.preventDefault(); setDrag(false); if (!open) add(Array.from(e.dataTransfer?.files || [])) }
-    window.addEventListener('dragover', over)
-    window.addEventListener('dragleave', leave)
-    window.addEventListener('drop', drop)
-    const fromSystem = (files: File[]) => { closeBook(); return add(files) }
-    const lq = (window as any).launchQueue
-    lq?.setConsumer?.(async (p: { files: FileSystemFileHandle[] }) => fromSystem(await Promise.all(p.files.map((h) => h.getFile()))))
-    // The desktop app gives a name and an address that works once, which saves holding the file twice.
-    const desktop = (window as any).wittyReaderDesktop
-    desktop?.setBookConsumer?.(async (opened: { name: string; url?: string; error?: string }[]) => {
+    const drop = (e: DragEvent) => { e.preventDefault(); setDrag(false); if (!reading) addRef.current(Array.from(e.dataTransfer?.files || [])) }
+    window.addEventListener('dragover', over); window.addEventListener('dragleave', leave); window.addEventListener('drop', drop)
+    // Files opened with WittyReader from the system once it is installed, or by the desktop app.
+    const fromSystem = (files: File[]) => { if (currentLocation().pathname.startsWith('/read/')) navigate('/', true); return addRef.current(files) }
+    const lq = (window as unknown as { launchQueue?: { setConsumer?: (f: (p: { files: FileSystemFileHandle[] }) => void) => void } }).launchQueue
+    lq?.setConsumer?.(async (p) => fromSystem(await Promise.all(p.files.map((h) => h.getFile()))))
+    const desktop = (window as unknown as { wittyReaderDesktop?: { setBookConsumer?: (f: (o: { name: string; url?: string; error?: string }[]) => Promise<void>) => void } }).wittyReaderDesktop
+    desktop?.setBookConsumer?.(async (opened) => {
       const files: File[] = []
       for (const o of opened) {
         try {
@@ -93,287 +160,74 @@ export default function App() {
           const res = await fetch(o.url)
           if (!res.ok) throw new Error()
           files.push(new File([await res.blob()], o.name))
-        } catch (e: any) { toast(e.message || `${o.name} could not be opened.`) }
+        } catch (e) { toast((e as Error).message || `${o.name} could not be opened.`) }
       }
       await fromSystem(files)
     })
-    return () => { window.removeEventListener('dragover', over); window.removeEventListener('dragleave', leave); window.removeEventListener('drop', drop) }
-  })
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o' && !open) { e.preventDefault(); picker.current?.click() } }
+    const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o' && !currentLocation().pathname.startsWith('/read/')) { e.preventDefault(); picker.current?.click() } }
     window.addEventListener('keydown', key)
-    return () => window.removeEventListener('keydown', key)
-  }, [open])
+    return () => { window.removeEventListener('dragover', over); window.removeEventListener('dragleave', leave); window.removeEventListener('drop', drop); window.removeEventListener('keydown', key) }
+  }, [reading, toast])
 
-  const setDict = (on: boolean) => { setDictionary(on); try { localStorage.setItem(DICT_KEY, on ? '1' : '0') } catch { /* ignore */ } }
-  const remove = async (rec: BookRec) => {
-    if (!confirm(`Remove “${rec.title}” and its notes from this device?`)) return
-    await books.remove(rec.key)
-    await refresh()
-    // Its card and menu are gone: the keyboard carries on from the first book, not the top of the page.
-    setTimeout(() => document.querySelector<HTMLElement>('.wr-grid .wr-cover')?.focus(), 50) // once the library has redrawn
-  }
-
+  const inputs = (
+    <>
+      <input ref={picker} type="file" accept={ACCEPT} multiple hidden onChange={(e) => { void add(Array.from(e.target.files || [])); e.target.value = '' }} />
+      <input ref={notesPicker} type="file" accept=".json,application/json" hidden onChange={async (e) => {
+        const f = e.target.files?.[0]; e.target.value = ''
+        if (f) try { toast(await importNotesFile(f)); refresh() } catch (err) { toast((err as Error).message) }
+      }} />
+      <input ref={themePicker} type="file" accept=".zip,application/zip" hidden onChange={async (e) => {
+        const f = e.target.files?.[0]; e.target.value = ''
+        if (!f) return
+        try {
+          const t = readThemeZip(new Uint8Array(await f.arrayBuffer()), f.name)
+          await addImported(t); await chooseTheme(t.meta.id); toast(`Theme “${t.meta.name}” added.`); refresh()
+        } catch (err) { toast(err instanceof ThemeError ? err.message : 'That theme could not be added.') }
+      }} />
+    </>
+  )
   const toastEl = msg && <div className="wr-toast" role="status">{msg}</div>
-  if (open) {
-    const f = open.host.format
-    return (
-      <HostContext.Provider value={open.host}>
-        {f === 'pdf' ? <Suspense fallback={<div className="reader center"><div className="spinner" /></div>}><WittyPDF /></Suspense> : f === 'cbz' ? <WittyComics /> : <WittyEbook />}
-        {toastEl}
-      </HostContext.Provider>
-    )
-  }
-  const all = list || []
-  const kinds = (['epub', 'pdf', 'cbz'] as const).filter((k) => all.some((b) => b.format === k))
-  const shown = all.filter((b) => (kind === 'all' || b.format === kind) && (!q || `${b.title} ${b.author || ''}`.toLowerCase().includes(q.toLowerCase())))
-    .sort(sort === 'title' ? (a, b) => a.title.localeCompare(b.title) : sort === 'author' ? (a, b) => +!a.author - +!b.author || (a.author || '').localeCompare(b.author || '') || a.title.localeCompare(b.title) // no author last
-      : sort === 'added' ? (a, b) => b.added - a.added : (a, b) => Math.max(b.opened, b.added) - Math.max(a.opened, a.added))
-  // The book being read: opened most recently and neither new nor finished.
-  const current = all.filter((b) => (b.opened || b.position) && progress(b) > 0 && progress(b) < 100).sort((a, b) => b.opened - a.opened)[0]
+
+  if (reading) return <Reading bookKey={reading} toast={toast} dictionary={dictionary.current} toastEl={toastEl} />
+
+  const back = () => navigate('/')
   return (
-    <div className="wr">
-      <header className="wr-top">
-        <div className="wr-brand"><img src="icon.svg" alt="" width={30} height={30} /><h1>WittyReader</h1></div>
-        {all.length > 0 && (
-          <label className="wr-search">
-            <IconSearch size={18} />
-            <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your library" aria-label="Search your library" />
-          </label>
-        )}
-        <span className="grow" />
-        <button className="btn primary" onClick={() => picker.current?.click()} title="Add books (Ctrl+O)"><IconAdd /><span className="wr-hide-sm">Add books</span></button>
-        <button className="ibtn wr-icon" onClick={() => setSettings(true)} aria-label="Settings" title="Settings"><IconSettings /></button>
-        <input ref={picker} type="file" accept={ACCEPT} multiple hidden onChange={(e) => { add(Array.from(e.target.files || [])); e.target.value = '' }} />
-        <input ref={notesPicker} type="file" accept=".json,application/json" hidden onChange={async (e) => {
-          const f = e.target.files?.[0]; e.target.value = ''
-          if (f) try { toast(await importNotesFile(f)) } catch (err: any) { toast(err.message) }
-        }} />
-      </header>
-
-      <main className="wr-main">
-        {list === null ? <div className="spinner" /> : list.length === 0 ? (
-          <div className="wr-empty">
-            <div className="wr-empty-art" aria-hidden="true"><span /><span /><span /></div>
-            <h2>Your reading, on your device</h2>
-            <p>Add an <b>EPUB</b> book, a <b>PDF</b> or a <b>CBZ</b> comic, or drop files anywhere on this window. Highlight, take notes and write with a pen; everything stays on this device.</p>
-            <button className="btn primary" onClick={() => picker.current?.click()}><IconAdd />Add books</button>
-          </div>
-        ) : (
-          <>
-            {current && !q && kind === 'all' && <Hero b={current} read={() => read(current)} />}
-            <div className="wr-shelf-head">
-              <h2>Library <span>{shown.length}</span></h2>
-              {kinds.length > 1 && (
-                <div className="wr-chips" role="radiogroup" aria-label="Show">
-                  {(['all', ...kinds] as const).map((k) => (
-                    <button key={k} role="radio" aria-checked={kind === k} className={kind === k ? 'active' : ''} onClick={() => setKind(k)}>{KIND_NAMES[k]}</button>
-                  ))}
-                </div>
-              )}
-              <span className="grow" />
-              <select className="select wr-sort" value={sort} onChange={(e) => setSortKept(e.target.value as typeof sort)} aria-label="Sort by">
-                <option value="recent">Recently read</option><option value="added">Recently added</option><option value="title">Title</option><option value="author">Author</option>
-              </select>
-            </div>
-            {shown.length === 0 ? <p className="wr-none">Nothing in your library matches “{q}”.</p> : (
-              <ul className="wr-grid" aria-label="Library">
-                {shown.map((b) => <Card key={b.key} b={b} read={() => read(b)} remove={() => remove(b)} exportNotes={() => exportNotesFile(b)} />)}
-              </ul>
-            )}
-          </>
-        )}
-      </main>
-
-      {settings && <Settings dictionary={dictionary} setDictionary={setDict} importNotes={() => notesPicker.current?.click()} close={() => setSettings(false)} />}
+    <Shell navigation={navigation(device.formFactor)} addBooks={() => picker.current?.click()}>
+      {doc === undefined ? <div className="wr-wait"><div className="spinner" /></div>
+        : doc === null || !route ? <div className="wr-gone"><h2>That page isn’t here</h2><p className="muted">A book may have been removed from this device.</p><button className="btn primary" onClick={back}>Back to your library</button></div>
+          : <PageView doc={doc} device={device} handlers={handlers} />}
+      {inputs}
       {drag && <div className="wr-drop" aria-hidden="true"><div><IconAdd size={40} />Drop to add to your library</div></div>}
       {busy && <div className="wr-busy" role="status"><div className="spinner" />{busy}</div>}
       {toastEl}
-    </div>
+    </Shell>
   )
 }
 
-const KIND_NAMES = { all: 'All', epub: 'Books', pdf: 'PDFs', cbz: 'Comics' }
-const FORMAT_NAMES = { epub: 'EPUB', pdf: 'PDF', cbz: 'Comic' }
-// How far through a book is, as its reader counts it. A PDF or comic is saved at the page on
-// screen, so its last page is the end. A book counts words, and its reader's last page starts
-// a little before them, so its last chapter with less than two pages' worth left is the end.
-function progress(b: BookRec) {
-  if (!b.total || (!b.opened && !b.position)) return 0 // never opened (a lost save may have dropped when it was)
-  const page = Math.max(0, Math.min(b.total - 1, Math.floor(b.position)))
-  const sum = (l: number[]) => l.reduce((x, y) => x + y, 0)
-  const all = b.words?.length === b.total ? sum(b.words) : -1
-  if (b.format !== 'epub' || all === 0) return Math.round(((page + 1) / b.total) * 100) // pages, or a book of pictures
-  if (all < 0) return Math.min(99, Math.round((b.position / b.total) * 100)) // not opened since words were kept
-  const left = b.words![page] * (1 - (b.position - page))
-  if (page === b.total - 1 && left < 600) return 100
-  return Math.min(99, Math.round(((sum(b.words!.slice(0, page)) + b.words![page] - left) / all) * 100))
-}
-const IconAdd = ({ size = 20 }: { size?: number }) => <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z" /></svg>
-
-// A cover from the book's stored picture, or its title on a coloured card.
-function useCover(b: BookRec) {
-  const [cover, setCover] = useState('')
+// The reading surface stays native: the plugins draw the book. Leaving the address closes it.
+function Reading({ bookKey, toast, dictionary, toastEl }: { bookKey: string; toast: (m: string) => void; dictionary: boolean; toastEl: React.ReactNode }) {
+  const [open, setOpen] = useState<{ host: ReaderHost; cleanup: () => void } | null>(null)
+  const [gone, setGone] = useState(false)
   useEffect(() => {
-    if (!b.cover) return
-    const u = URL.createObjectURL(b.cover)
-    setCover(u)
-    return () => URL.revokeObjectURL(u)
-  }, [b.cover])
-  return cover
-}
-function Cover({ b }: { b: BookRec }) {
-  const cover = useCover(b)
-  if (cover) return <img src={cover} alt="" loading="lazy" draggable={false} />
-  // A stable colour per book, so a library without covers is still easy to scan.
-  let h = 0
-  for (const c of b.key.slice(0, 8)) h = (h * 31 + c.charCodeAt(0)) % 360
+    let live = true
+    let opened: { host: ReaderHost; cleanup: () => void } | null = null
+    ;(async () => {
+      const rec = await books.get(bookKey)
+      if (!rec) { setGone(true); return }
+      try {
+        opened = await openBook(rec, { toast, dictionary, close: () => (canGoBack() ? history.back() : navigate(`/book/${bookKey}`, true)) })
+        if (live) setOpen(opened); else opened.cleanup()
+      } catch (e) { toast((e as Error).message); navigate('/', true) }
+    })()
+    return () => { live = false; opened?.cleanup(); setOpen(null) }
+  }, [bookKey, toast, dictionary])
+  useEffect(() => { if (gone) { toast('That book is not on this device any more.'); navigate('/', true) } }, [gone, toast])
+  if (!open) return <div className="reader center"><div className="spinner" /></div>
+  const f = open.host.format
   return (
-    <span className="wr-blank" style={{ background: `linear-gradient(160deg, hsl(${h} 38% 34%), hsl(${(h + 40) % 360} 42% 20%))` }}>
-      <b>{b.title}</b>{b.author && <small>{b.author}</small>}
-    </span>
-  )
-}
-
-function Hero({ b, read }: { b: BookRec; read: () => void }) {
-  const pct = progress(b)
-  return (
-    <section className="wr-hero" aria-label="Continue reading">
-      <button className="wr-hero-cover" onClick={read} aria-label={`Continue ${b.title}`}><Cover b={b} /></button>
-      <div className="wr-hero-text">
-        <span className="wr-eyebrow">Continue reading</span>
-        <h2>{b.title}</h2>
-        {b.author && <p className="wr-hero-author">{b.author}</p>}
-        <div className="wr-hero-prog"><span className="wr-bar"><i style={{ width: `${pct}%` }} /></span><span>{pct}%</span></div>
-        <button className="btn primary" onClick={read}>Continue</button>
-      </div>
-    </section>
-  )
-}
-
-function Card({ b, read, remove, exportNotes }: { b: BookRec; read: () => void; remove: () => void; exportNotes: () => void }) {
-  const [menu, setMenu] = useState(false)
-  const box = useRef<HTMLLIElement | null>(null)
-  const more = useRef<HTMLButtonElement | null>(null)
-  const list = useRef<HTMLDivElement | null>(null)
-  // The menu closes on a click anywhere else, or on Esc or Tab, back to its button.
-  useEffect(() => {
-    if (!menu) return
-    const off = (e: Event) => { if (!box.current?.contains(e.target as Node)) setMenu(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setMenu(false); more.current?.focus() } }
-    document.addEventListener('pointerdown', off)
-    document.addEventListener('keydown', esc)
-    return () => { document.removeEventListener('pointerdown', off); document.removeEventListener('keydown', esc) }
-  }, [menu])
-  // Open, it takes the focus, and opens the other way where the screen ends (a phone's left column).
-  useLayoutEffect(() => {
-    const m = list.current
-    if (!menu || !m) return
-    if (m.getBoundingClientRect().left < 8) m.classList.add('wr-menu-start')
-    m.querySelector<HTMLElement>('[role=menuitem]')?.focus()
-  }, [menu])
-  const keys = (e: React.KeyboardEvent) => {
-    const items = Array.from(list.current?.querySelectorAll<HTMLElement>('[role=menuitem]') || [])
-    const at = items.indexOf(document.activeElement as HTMLElement)
-    const go = { ArrowDown: at + 1, ArrowUp: (at < 0 ? 0 : at) - 1, Home: 0, End: items.length - 1 }[e.key]
-    if (go !== undefined) { e.preventDefault(); items[(go + items.length) % items.length]?.focus() }
-    else if (e.key === 'Tab') { e.preventDefault(); setMenu(false); more.current?.focus() }
-  }
-  const pct = progress(b)
-  return (
-    <li className="wr-card" ref={box}>
-      <button className="wr-cover" onClick={read} aria-label={`Read ${b.title}, ${FORMAT_NAMES[b.format]}`}>
-        <Cover b={b} />
-        <span className="wr-badge">{FORMAT_NAMES[b.format]}</span>
-        {pct > 0 && pct < 100 && <span className="wr-prog"><i style={{ width: `${pct}%` }} /></span>}
-        {pct >= 100 && <span className="wr-done" title="Finished">✓</span>}
-      </button>
-      <div className="wr-meta">
-        <div className="grow">
-          <b title={b.title}>{b.title}</b>
-          <span className="wr-sub">{b.author || (pct ? '' : 'New')}{b.author && pct > 0 && pct < 100 ? ' · ' : ''}{pct > 0 && pct < 100 ? `${pct}%` : ''}</span>
-        </div>
-        <button ref={more} className="ibtn sm wr-more" aria-label={`More for ${b.title}`} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)}><IconMore /></button>
-      </div>
-      {menu && (
-        <div className="wr-menu" role="menu" ref={list} onKeyDown={keys}>
-          <button role="menuitem" tabIndex={-1} onClick={() => { setMenu(false); read() }}>{pct > 0 && pct < 100 ? 'Continue reading' : 'Read'}</button>
-          <button role="menuitem" tabIndex={-1} onClick={() => { setMenu(false); exportNotes() }}>Export notes</button>
-          <hr />
-          <button role="menuitem" tabIndex={-1} className="danger" onClick={() => { setMenu(false); remove() }}>Remove from this device</button>
-        </div>
-      )}
-    </li>
-  )
-}
-
-function Settings({ dictionary, setDictionary, importNotes, close }: { dictionary: boolean; setDictionary: (on: boolean) => void; importNotes: () => void; close: () => void }) {
-  const [used, setUsed] = useState('')
-  const box = useRef<HTMLElement | null>(null)
-  useEffect(() => {
-    navigator.storage?.estimate?.().then((e) => setUsed(`${((e.usage || 0) / 1048576).toFixed(1)} MB`)).catch(() => {})
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    window.addEventListener('keydown', esc)
-    return () => window.removeEventListener('keydown', esc)
-  }, [close])
-  // The focus goes into the dialog, stays there while it's open, and goes back where it was.
-  useEffect(() => {
-    const before = document.activeElement as HTMLElement | null
-    box.current?.querySelector<HTMLElement>('input, button')?.focus()
-    return () => before?.focus()
-  }, [])
-  const trap = (e: React.KeyboardEvent) => {
-    if (e.key !== 'Tab') return
-    const all = Array.from(box.current?.querySelectorAll<HTMLElement>('input:not([type=radio]), input[type=radio]:checked, button, a[href]') || [])
-    const edge = e.shiftKey ? all[0] : all[all.length - 1]
-    if (document.activeElement === edge) { e.preventDefault(); (e.shiftKey ? all[all.length - 1] : all[0])?.focus() }
-  }
-  return (
-    <div className="wr-modal" onClick={(e) => { if (e.target === e.currentTarget) close() }}>
-      <section className="wr-dialog" role="dialog" aria-modal="true" aria-label="Settings" ref={box} onKeyDown={trap}>
-        <header><h2>Settings</h2><button className="ibtn sm" onClick={close} aria-label="Close"><IconClose /></button></header>
-        <div className="wr-set">
-          <label className="wr-switch">
-            <span><b>Look up words online</b><small>Definitions come from dictionaryapi.dev. Only the word you look up is sent, and only when this is on.</small></span>
-            <input type="checkbox" role="switch" checked={dictionary} onChange={(e) => setDictionary(e.target.checked)} />
-          </label>
-          <ThemePicker />
-          <div className="wr-set-row">
-            <span><b>Notes from another device</b><small>Adds notes exported from WittyReader elsewhere to the matching books here.</small></span>
-            <button className="btn sm" onClick={importNotes}>Import notes…</button>
-          </div>
-          <div className="wr-set-row">
-            <span><b>Storage</b><small>Books and notes live in this browser on this device{used ? ` (${used})` : ''}. Clearing the browser's site data removes them, so export notes you want to keep.</small></span>
-          </div>
-        </div>
-        <p className="wr-about">
-          WittyReader {VERSION}, developed by WittyWilla · GNU GPL v3.0 or later · <a href="https://github.com/wittywilla/WittyReader" target="_blank" rel="noreferrer">Source and licences</a> · Part of the <a href="https://github.com/wittywilla/WittyMediaServer" target="_blank" rel="noreferrer">WittyMediaServer</a> family
-        </p>
-      </section>
-    </div>
-  )
-}
-
-// The look of the library and the readers' menus: WittyMediaServer's themes, or the device's.
-function ThemePicker() {
-  const [choice, setChoice] = useState(savedTheme)
-  const pick = (id: string) => { setChoice(id); chooseTheme(id) }
-  const options = [{ id: SYSTEM, name: 'Match this device', description: 'Witty when the device is dark, Light when it is light.', scheme: 'auto', colors: {} as Record<string, string> }, ...THEMES]
-  return (
-    <fieldset className="wr-set-row wr-themes">
-      <legend><b>Look</b><small>The same themes as WittyMediaServer. Pages of a book keep their own colours, set in the reader.</small></legend>
-      <div className="wr-theme-grid">
-        {options.map((t) => (
-          <label key={t.id} className="wr-theme" title={t.description}>
-            <input type="radio" name="wr-theme" value={t.id} checked={choice === t.id} onChange={() => pick(t.id)} />
-            <span className={'wr-swatch' + (t.id === SYSTEM ? ' auto' : '')} aria-hidden="true"
-              style={t.id === SYSTEM ? undefined : { background: t.colors['--bg'], color: t.colors['--fg'], borderColor: t.colors['--bg-4'] }}>
-              {t.id !== SYSTEM && <i style={{ background: t.colors['--accent'] }} />}
-            </span>
-            <span className="wr-theme-name">{t.name}</span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
+    <HostContext.Provider value={open.host}>
+      {f === 'pdf' ? <Suspense fallback={<div className="reader center"><div className="spinner" /></div>}><WittyPDF /></Suspense> : f === 'cbz' ? <WittyComics /> : <WittyEbook />}
+      {toastEl}
+    </HostContext.Provider>
   )
 }

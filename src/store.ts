@@ -68,6 +68,8 @@ export const files = {
 
 const strip = ({ book: _book, ...a }: NoteRec): Ann => a
 export const notes = {
+  // Every note in the library, for the notes page.
+  all: () => run<NoteRec[]>(['notes'], 'readonly', (t) => t.objectStore('notes').getAll()),
   list: (book: string) => run<NoteRec[]>(['notes'], 'readonly', (t) => t.objectStore('notes').index('book').getAll(IDBKeyRange.only(book)))
     .then((l) => l.map(strip).sort((a, b) => a.pos - b.pos || a.id - b.id)),
   async add(book: string, a: Partial<Ann>): Promise<Ann> {

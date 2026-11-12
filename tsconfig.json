@@ -14,7 +14,8 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
-    "paths": { "@wittywilla/*": ["./node_modules/@wittywilla/*"] }
+    "paths": { "@wittywilla/*": ["./node_modules/@wittywilla/*"], "react-router-dom": ["./src/web/router.tsx"] },
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }

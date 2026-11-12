@@ -1,0 +1,944 @@
+{
+  "$comment": "Written by scripts/sync-web.mjs from the server conformance fixtures: the device profiles a page is fitted to.",
+  "layouts": {
+    "phone": {
+      "formFactor": "phone",
+      "canvas": {
+        "width": 402,
+        "height": 874
+      },
+      "scale": 3,
+      "breakpoint": "compact",
+      "safeArea": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "focusEngine": false,
+      "density": "comfortable",
+      "spacing": {
+        "l": 24,
+        "m": 16,
+        "none": 0,
+        "s": 8,
+        "xl": 40,
+        "xs": 4
+      },
+      "text": {
+        "badge": 11,
+        "body": 16,
+        "caption": 13,
+        "display": 28,
+        "heading": 22,
+        "pageTitle": 28,
+        "title": 17
+      },
+      "cards": {
+        "album": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 180,
+            "m": 144,
+            "s": 114
+          }
+        },
+        "block": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "book": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "channel": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "chip": {
+          "shape": "chip",
+          "width": {
+            "l": 0,
+            "m": 0,
+            "s": 0
+          }
+        },
+        "circle": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 120,
+            "m": 96,
+            "s": 76
+          }
+        },
+        "episode": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "game": {
+          "shape": "poster",
+          "aspect": "3/4",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "landscape": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "logo": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "person": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 120,
+            "m": 96,
+            "s": 76
+          }
+        },
+        "photo": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 180,
+            "m": 144,
+            "s": 114
+          }
+        },
+        "plate": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "poster": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "progress": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        },
+        "square": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 180,
+            "m": 144,
+            "s": 114
+          }
+        },
+        "tile": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 280,
+            "m": 224,
+            "s": 178
+          }
+        }
+      },
+      "hero": {
+        "width": 430,
+        "height": 242
+      },
+      "peek": 0.12,
+      "dock": {
+        "placement": "sheet",
+        "height": 0,
+        "hintSize": 12
+      },
+      "imageWidths": [
+        120,
+        160,
+        240,
+        320,
+        480,
+        640,
+        960,
+        1280,
+        1920,
+        2560,
+        3840
+      ],
+      "budget": {
+        "maxSections": 16,
+        "eagerSections": 5,
+        "shelfItems": 12,
+        "gridItems": 30,
+        "listItems": 30,
+        "pageSize": 30,
+        "heroItems": 5,
+        "repeats": 10
+      },
+      "textLimits": {
+        "title": 80,
+        "subtitle": 80,
+        "synopsis": 140,
+        "overview": 400
+      },
+      "externalLinks": true
+    },
+    "tablet": {
+      "formFactor": "tablet",
+      "scale": 2,
+      "breakpoint": "expanded",
+      "safeArea": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "focusEngine": false,
+      "density": "comfortable",
+      "spacing": {
+        "l": 24,
+        "m": 16,
+        "none": 0,
+        "s": 8,
+        "xl": 48,
+        "xs": 4
+      },
+      "text": {
+        "badge": 12,
+        "body": 17,
+        "caption": 13,
+        "display": 34,
+        "heading": 24,
+        "pageTitle": 34,
+        "title": 20
+      },
+      "cards": {
+        "album": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "block": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "book": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 200,
+            "m": 160,
+            "s": 128
+          }
+        },
+        "channel": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "chip": {
+          "shape": "chip",
+          "width": {
+            "l": 0,
+            "m": 0,
+            "s": 0
+          }
+        },
+        "circle": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "episode": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "game": {
+          "shape": "poster",
+          "aspect": "3/4",
+          "width": {
+            "l": 200,
+            "m": 160,
+            "s": 128
+          }
+        },
+        "landscape": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "logo": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "person": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 150,
+            "m": 120,
+            "s": 96
+          }
+        },
+        "photo": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "plate": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 200,
+            "m": 160,
+            "s": 128
+          }
+        },
+        "poster": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 200,
+            "m": 160,
+            "s": 128
+          }
+        },
+        "progress": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        },
+        "square": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "tile": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 360,
+            "m": 288,
+            "s": 230
+          }
+        }
+      },
+      "hero": {
+        "width": 1024,
+        "height": 440
+      },
+      "peek": 0.12,
+      "dock": {
+        "placement": "bottom",
+        "height": 64,
+        "hintSize": 13
+      },
+      "imageWidths": [
+        120,
+        160,
+        240,
+        320,
+        480,
+        640,
+        960,
+        1280,
+        1920,
+        2560,
+        3840
+      ],
+      "budget": {
+        "maxSections": 20,
+        "eagerSections": 6,
+        "shelfItems": 16,
+        "gridItems": 48,
+        "listItems": 40,
+        "pageSize": 36,
+        "heroItems": 5,
+        "repeats": 12
+      },
+      "textLimits": {
+        "title": 100,
+        "subtitle": 100,
+        "synopsis": 200,
+        "overview": 700
+      },
+      "externalLinks": true
+    },
+    "web": {
+      "formFactor": "web",
+      "canvas": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 2,
+      "breakpoint": "large",
+      "safeArea": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "focusEngine": false,
+      "density": "comfortable",
+      "spacing": {
+        "l": 24,
+        "m": 16,
+        "none": 0,
+        "s": 8,
+        "xl": 48,
+        "xs": 4
+      },
+      "text": {
+        "badge": 11,
+        "body": 14,
+        "caption": 12,
+        "display": 28,
+        "heading": 20,
+        "pageTitle": 28,
+        "title": 16
+      },
+      "cards": {
+        "album": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "block": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "book": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "channel": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "chip": {
+          "shape": "chip",
+          "width": {
+            "l": 0,
+            "m": 0,
+            "s": 0
+          }
+        },
+        "circle": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 174,
+            "m": 140,
+            "s": 112
+          }
+        },
+        "episode": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "game": {
+          "shape": "poster",
+          "aspect": "3/4",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "landscape": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "logo": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "person": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 174,
+            "m": 140,
+            "s": 112
+          }
+        },
+        "photo": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "plate": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "poster": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "progress": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "square": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "tile": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        }
+      },
+      "hero": {
+        "width": 1600,
+        "height": 620
+      },
+      "peek": 0,
+      "dock": {
+        "placement": "bottom",
+        "height": 64,
+        "hintSize": 12
+      },
+      "imageWidths": [
+        120,
+        160,
+        240,
+        320,
+        480,
+        640,
+        960,
+        1280,
+        1920,
+        2560,
+        3840
+      ],
+      "budget": {
+        "maxSections": 30,
+        "eagerSections": 8,
+        "shelfItems": 20,
+        "gridItems": 60,
+        "listItems": 50,
+        "pageSize": 48,
+        "heroItems": 6,
+        "repeats": 16
+      },
+      "textLimits": {
+        "title": 120,
+        "subtitle": 120,
+        "synopsis": 220,
+        "overview": 900
+      },
+      "externalLinks": true
+    },
+    "desktop": {
+      "formFactor": "desktop",
+      "canvas": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 2,
+      "breakpoint": "large",
+      "safeArea": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "focusEngine": false,
+      "density": "comfortable",
+      "spacing": {
+        "l": 24,
+        "m": 16,
+        "none": 0,
+        "s": 8,
+        "xl": 48,
+        "xs": 4
+      },
+      "text": {
+        "badge": 11,
+        "body": 14,
+        "caption": 12,
+        "display": 28,
+        "heading": 20,
+        "pageTitle": 28,
+        "title": 16
+      },
+      "cards": {
+        "album": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "block": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "book": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "channel": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "chip": {
+          "shape": "chip",
+          "width": {
+            "l": 0,
+            "m": 0,
+            "s": 0
+          }
+        },
+        "circle": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 174,
+            "m": 140,
+            "s": 112
+          }
+        },
+        "episode": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "game": {
+          "shape": "poster",
+          "aspect": "3/4",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "landscape": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "logo": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "person": {
+          "shape": "circle",
+          "aspect": "1/1",
+          "width": {
+            "l": 174,
+            "m": 140,
+            "s": 112
+          }
+        },
+        "photo": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "plate": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "poster": {
+          "shape": "poster",
+          "aspect": "2/3",
+          "width": {
+            "l": 224,
+            "m": 180,
+            "s": 144
+          }
+        },
+        "progress": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        },
+        "square": {
+          "shape": "square",
+          "aspect": "1/1",
+          "width": {
+            "l": 250,
+            "m": 200,
+            "s": 160
+          }
+        },
+        "tile": {
+          "shape": "landscape",
+          "aspect": "16/9",
+          "width": {
+            "l": 400,
+            "m": 320,
+            "s": 256
+          }
+        }
+      },
+      "hero": {
+        "width": 1600,
+        "height": 620
+      },
+      "peek": 0,
+      "dock": {
+        "placement": "bottom",
+        "height": 64,
+        "hintSize": 12
+      },
+      "imageWidths": [
+        120,
+        160,
+        240,
+        320,
+        480,
+        640,
+        960,
+        1280,
+        1920,
+        2560,
+        3840
+      ],
+      "budget": {
+        "maxSections": 30,
+        "eagerSections": 8,
+        "shelfItems": 20,
+        "gridItems": 60,
+        "listItems": 50,
+        "pageSize": 48,
+        "heroItems": 6,
+        "repeats": 16
+      },
+      "textLimits": {
+        "title": 120,
+        "subtitle": 120,
+        "synopsis": 220,
+        "overview": 900
+      },
+      "externalLinks": true,
+      "shell": {
+        "experience": "dashboard",
+        "nav": "rail",
+        "size": 80,
+        "placements": {
+          "brand": {
+            "visible": true
+          },
+          "clock": {
+            "visible": true
+          },
+          "dock": {
+            "visible": true
+          },
+          "hero": {
+            "visible": true
+          },
+          "legend": {
+            "visible": true
+          },
+          "nav": {
+            "visible": true
+          },
+          "profile": {
+            "visible": true
+          },
+          "search": {
+            "visible": true
+          }
+        }
+      }
+    }
+  }
+}

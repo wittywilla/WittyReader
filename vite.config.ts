@@ -39,7 +39,8 @@ export default defineConfig(({ command }) => ({
   plugins: [react(), csp, pdfAssets],
   // While developing, the same files straight from node_modules.
   define: { __APP_VERSION__: JSON.stringify(appVersion), __PDF_ASSETS__: JSON.stringify(command === 'build' ? `assets/pdfjs-${pdfVersion}/` : '/node_modules/pdfjs-dist/') },
-  resolve: { dedupe: ['react', 'react-dom', 'pdfjs-dist'] },
+  // The server's renderer imports react-router-dom's Link: the app's own seam answers it (src/web/router.tsx).
+  resolve: { dedupe: ['react', 'react-dom', 'pdfjs-dist'], alias: { 'react-router-dom': fileURLToPath(new URL('./src/web/router.tsx', import.meta.url)) } },
   // The plugins ship as TypeScript source: compile them like the app's own files.
   optimizeDeps: { exclude: ['@wittywilla/wittyink', '@wittywilla/wittyebook', '@wittywilla/wittypdf', '@wittywilla/wittycomics'] },
   // The browsers this app has always reached, whatever the bundler's default is now.

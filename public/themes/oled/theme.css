@@ -1,0 +1,54 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Copyright (C) 2026 WittyWilla and contributors */
+/*
+ * True black - a WittyMediaServer theme.
+ * Pure black, kind to OLED screens at night.
+ *
+ * Every variable below is explained in docs/THEMES.md. Copy this file into
+ * your own theme ZIP as a starting point.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #000000;          /* page background */
+  --bg-2: #0b0b0d;        /* side menu, panels, dialogs */
+  --bg-3: #141417;        /* fields, cards, hovered rows */
+  --bg-4: #1f1f23;        /* pressed buttons, scrollbars */
+  --bg-rgb: 0 0 0;   /* --bg as "R G B", for see-through shades */
+  --border: color-mix(in srgb, var(--fg) 10%, transparent); /* hairlines between panels */
+  --control-line: #616170;      /* outlines of fields and switches: 3:1 on every surface */
+
+  /* Text */
+  --fg: #f2f2f5;          /* main text */
+  --fg-2: #adadb6;        /* secondary text */
+  --fg-3: #8b8b95;        /* hints, captions */
+
+  /* Accent: buttons, highlights, progress bars, selected items */
+  --accent: #7955ff;
+  --accent-2: #6a4df0;      /* hovered or pressed accent */
+  --accent-fg: #ffffff;     /* text on the accent */
+  --accent-text: #9f86ff;   /* the accent as text: links, highlighted words */
+  --accent-rgb: 121 85 255;
+  --brand-accent: var(--accent-text); /* the highlighted word of the name in the corner */
+
+  /* Status */
+  --danger: #ff5c6c;
+  --ok: #3ad29f;
+  --warn: #e0a030;
+
+  /* Shape and depth */
+  --radius: 10px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --card-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  /* Layout and type */
+  --sidebar: 240px;
+  --font: "Inter", "Segoe UI Variable Text", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Ten feet away (docs/THEMES.md "The TV pass"): the focus ring, the scrim's strength behind hero text, body text a step stronger */
+  --tv-ring-color: #f2f2f5;
+  --tv-text: #f3f3f6;
+  --hero-scrim: 0.7;
+}
