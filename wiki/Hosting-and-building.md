@@ -79,3 +79,10 @@ The themes are WittyMediaServer's. When the server's built-in themes change, run
 | `src/store.ts` | The on-device database (IndexedDB): books, files and notes. |
 | `public/sw.js` | The service worker: shows unpacked EPUBs, keeps the app working offline. |
 | `desktop/` | The installed app: its window, its address, opening files from the system, and the installers. |
+
+## Icons
+
+The icons in `public/` and `desktop/build/` (and the disk image's background and the Windows installer's pictures) are
+drawn by WittyMediaServer's `scripts/genicon`, the one generator for every logo of the family. With a WittyMediaServer
+checkout beside this one, `scripts/sync-brand.sh` redraws them and `scripts/sync-brand.sh --check` says whether they
+are up to date. Don't edit them by hand.

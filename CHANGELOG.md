@@ -5,6 +5,7 @@ What changed in WittyReader, newest first. What changed before it had a reposito
 
 ## 0.2.0 (not released yet)
 
+- **A new icon** in the WittyMediaServer family's look: a ring with an open book inside and a coral dot, on the dark tile, at every size each system asks for (favicon, home-screen and maskable icons, and the desktop app's icons for macOS, Windows and Linux), with a disk-image background and installer pictures. All are drawn by WittyMediaServer's genicon: `scripts/sync-brand.sh` redraws them.
 - **Themes.** Settings → Look has WittyMediaServer's themes (Witty, Light, Paper, Cinema, Evergreen, High contrast, Midnight,
   True black), and Match this device, which is the default and follows the system between dark and light. The library, menus and
   the readers' panels follow it, and the desktop window's own colour matches, so it doesn't flash when it opens or resizes.
