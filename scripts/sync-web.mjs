@@ -34,7 +34,7 @@ export const WEB = [
   'sdui/formsModel.ts', 'sdui/markdownModel.ts', 'sdui/model.ts', 'sdui/native.ts', 'sdui/patch.ts', 'sdui/playModel.ts', 'sdui/routes.ts', 'sdui/types.ts',
   'sdui/render/DockView.tsx', 'sdui/render/forms.tsx', 'sdui/render/components.tsx', 'sdui/render/context.tsx', 'sdui/render/icons.tsx', 'sdui/render/markdown.tsx', 'sdui/render/widgets.tsx',
   'ui/Button.tsx', 'ui/Choice.tsx', 'ui/Dock.tsx', 'ui/Field.tsx', 'ui/KeyLegend.tsx', 'ui/Menu.tsx', 'ui/Overlay.tsx', 'ui/Scene.tsx', 'ui/Tooltip.tsx',
-  'ui/backEntry.ts', 'ui/themeMaker.ts', 'ui/inputKind.ts', 'ui/inputModel.ts', 'ui/menuPlace.ts', 'ui/spatial.ts', 'ui/useInput.ts',
+  'ui/backEntry.ts', 'ui/qr.ts', 'components/QrCode.tsx', 'ui/themeMaker.ts', 'ui/inputKind.ts', 'ui/inputModel.ts', 'ui/menuPlace.ts', 'ui/spatial.ts', 'ui/useInput.ts',
   // the design system's stylesheets
   'styles.css', 'design2.css', 'finish.css', 'ui/ui.css', 'sdui/sdui.css',
 ]

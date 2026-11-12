@@ -1,8 +1,8 @@
 {
   "$comment": "Written by scripts/sync-web.mjs. The hash of every file copied from WittyMediaServer and WittyModule; do not edit by hand.",
-  "server": "e942e598",
+  "server": "ccf8fcb7",
   "serverBranch": "v0.8.0-alpha",
-  "module": "b95cfbd",
+  "module": "4ba06a1",
   "files": {
     "src/web/brandName.ts": "c7de7a054ef640e77397f96d8523e5a28dd5ffc11f87faec93d54b23ccd5c05a",
     "src/web/brandStyle.ts": "27c8efe0a85f96edaaa3867ccd435263062bb1dbbc312c1979cacfa9432e727d",
@@ -26,7 +26,7 @@
     "src/web/sdui/types.ts": "a3a77548020978bc0d09ff763b22cec60ccddb12abe0e5c66187e87854e74738",
     "src/web/sdui/render/DockView.tsx": "c2032162e59316692a0efa1423c4877af6669925aac3289a7df201b8fb3cac40",
     "src/web/sdui/render/forms.tsx": "5f25d29132059d635f3c7ea433d5f066740e8fd58e69f2b58349cf61fbcf1995",
-    "src/web/sdui/render/components.tsx": "3c4577b71dc90b9d270ac1c7224f018398cec6c785dff843cacbab48d77c6b36",
+    "src/web/sdui/render/components.tsx": "d46ce35782f3bfe52c5d55bf931ed08995adba28d7e4c13488c2030334772d33",
     "src/web/sdui/render/context.tsx": "69088a6040a60ecea8956d81bd3f9081f3f65e6a2781987a00198e992a32dc4c",
     "src/web/sdui/render/icons.tsx": "5313908062dd60c0e17d79d0acc7cabaf8d10303a9243b1f8dcd984fd624a5cd",
     "src/web/sdui/render/markdown.tsx": "c970c6e7e69146f2bdefd37f455c15de2a7e2037dbe82b78ceb30eb62205c76a",
@@ -41,6 +41,8 @@
     "src/web/ui/Scene.tsx": "709b1f6bf306b3801bb98e3beb4a32b9be2cec3af270a8b6c54b2280800197b6",
     "src/web/ui/Tooltip.tsx": "cadea43c1758e3cce83fa581622e21491c8d652f5eafcfa006d6b30653f5ca3e",
     "src/web/ui/backEntry.ts": "39ffb494d1de7c3e99a3b6e28f384e76b3e1e3e6d2b6b71c8d04831df5ee1c15",
+    "src/web/ui/qr.ts": "ea3b58667253a61af70e9d157083233eec3cbae3b6f5c3f1b3d499b96dcfe2d0",
+    "src/web/components/QrCode.tsx": "5eff925e62119e1654b4d6bff620e627ea50073ea6e08c86fd5e941c84c5ed74",
     "src/web/ui/themeMaker.ts": "bdda7e822d231b5fb175b4cd3de934d302664534dfa0aa9c1f3650dc1d533d48",
     "src/web/ui/inputKind.ts": "c9d030972b7ba07139f094bbf3bb74387258c636e25f43d148ea88b560272da8",
     "src/web/ui/inputModel.ts": "78a9c0ccdd9a6f9854cc7682a31618bd7246b3af0fbe87b6edf1e44ada67eb48",
@@ -48,7 +50,7 @@
     "src/web/ui/spatial.ts": "e8bcc27c9b90f01228deaa92960db22405442d0479f95f64bdf8ccef06c34a8f",
     "src/web/ui/useInput.ts": "60b5f3c269b10a57d9e8bcc9824546ffe714c4013953d6c518d4c99ef13af0f0",
     "src/web/styles.css": "b2864511f0129b26083749ac9309f7c5fe3791d35024f81a028235b4452649ed",
-    "src/web/design2.css": "5a5a72c772e46e36ac3b7c4aabe5c99b53f4ca66415986b76906f6a5ab9eb3e6",
+    "src/web/design2.css": "e6def1a21644d06fa2b1667358661d325bd7e6a1334ca38d4958a5e4472cb9f0",
     "src/web/finish.css": "d2b571453d6cbf230be2d05e78201798f2fd51fd88cb6ad2f8d5229090af265e",
     "src/web/ui/ui.css": "52ccfe0db8cb4fec31a884b5d5930fea9ffc3da2f05e22ba0ba19e5640f89322",
     "src/web/sdui/sdui.css": "11d7166c159f75bffefebc43db5cdb6a1af3ba4497468b96b8ace71e60deed74",
@@ -85,6 +87,6 @@
     "src/web/tokens.json": "2406372b078c780929345e020681d10a18f4d785f83f2dde1a0ddb292c8d5280",
     "src/web/experiences.json": "73696d3eb7078ed2ce0e02e0743878e01a7654272db3780ad3574ff4a1a9f9fd",
     "src/web/layouts.json": "af009e508fbad6d0110ec70f01d685fe03e4a2ac2499f1e904772542c2083d61",
-    "src/web/catalog.json": "e08177f9f043066c8a708c29877455fa7c926c91be14e79b4eac8744c61d31d2"
+    "src/web/catalog.json": "1f144b682f9ebc251802af5e9655985a71dc255ec0392e37ad3de46159d4072e"
   }
 }

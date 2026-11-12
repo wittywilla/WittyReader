@@ -6,11 +6,13 @@ Read and annotate books, PDFs and comics on your own device, with no server and 
 
 ![A library of books, PDFs and comics](docs/images/reader-library.webp)
 
-<sub>Covers and text from [Standard Ebooks](https://standardebooks.org/), [CC0](https://creativecommons.org/publicdomain/zero/1.0/); Earth as Art, NASA, public domain; [Pepper&Carrot](https://www.peppercarrot.com/), David Revoy, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).</sub>
+<sub>A made-up library with covers drawn by the picture script: no one's media. Every screen but the book is drawn by WittyMediaServer's own renderer, in the same themes.</sub>
 
-![A book open in WittyReader](docs/images/reader-book.webp)
+![The library in the Aero, Paper and Teletext themes](docs/images/reader-theme-aero.webp)
+![The library in Paper](docs/images/reader-theme-paper.webp)
+![The library in Teletext](docs/images/reader-theme-teletext.webp)
 
-<sub>Text and cover from [Standard Ebooks](https://standardebooks.org/), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).</sub>
+![Every note from every book, with filters and export](docs/images/reader-notes.webp)
 
 <!-- /pictures -->
 
