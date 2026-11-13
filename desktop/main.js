@@ -139,7 +139,8 @@ ipcMain.handle('servers:add', (event, input, hash) => {
   if (!fromPage(event) || !origin) return null
   if (!servers.includes(origin)) { servers = cleanList([...servers, origin]); saveServers() }
   if (!servers.includes(origin)) return null // the list is full
-  if (win) win.loadURL(`${ORIGIN}/#${typeof hash === 'string' && /^\/[\w/?=&%.:-]*$/.test(hash) ? hash : '/connect'}`)
+  // A different address (a query the app ignores), so it is a new page with the new policy, not only a new hash of the same one.
+  if (win) win.loadURL(`${ORIGIN}/?servers=${Date.now()}#${typeof hash === 'string' && /^\/[\w/?=&%.:-]*$/.test(hash) ? hash : '/connect'}`)
   return origin
 })
 ipcMain.handle('servers:remove', (event, input) => {
