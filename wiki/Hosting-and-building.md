@@ -4,7 +4,7 @@ WittyReader is a static web app: a folder of files, with no server-side code.
 
 ## Build it
 
-You need [Node.js](https://nodejs.org) 20 or newer.
+You need [Node.js](https://nodejs.org) 22, as CI uses (`npm test` needs 22.6 or newer).
 
 ```bash
 git clone https://github.com/wittywilla/WittyReader.git
@@ -40,7 +40,9 @@ GitHub Pages, Netlify…). Notes:
   on secure addresses. Opening `index.html` straight from the disk won't work.
 - **Any folder works:** the app uses relative paths, so `https://example.com/reader/` is fine.
 - **No special server settings** are needed. The app sets its own security policy, and EPUB
-  chapters get theirs from the service worker.
+  chapters get theirs from the service worker. The web app can't add servers to that policy, so
+  reading from a WittyMediaServer needs the desktop app, or a host that serves WittyReader with a
+  `Content-Security-Policy` header naming the server.
 
 To try a build locally:
 
@@ -67,18 +69,24 @@ To build with plugin changes that aren't released yet, keep their checkouts besi
 after `npm ci`, run `node scripts/dev-modules.mjs` (or name another folder holding them). It copies
 them into `node_modules` without touching `package.json`; `npm ci` puts the released ones back.
 
-The themes are WittyMediaServer's. When the server's built-in themes change, run
-`node scripts/sync-themes.mjs <server checkout>` and commit `src/themes.json`.
+The screens and themes are WittyMediaServer's. When the server's renderer, stylesheets or
+built-in themes change, run `node scripts/sync-web.mjs [server checkout] [WittyModule checkout]`
+and commit what it writes; `npm test` fails when a copied file was edited by hand. When a reader's
+settings change, `node scripts/sync-modules.mjs` copies them into `src/modules/settings.json`.
+How the screens work is in
+[docs/SDUI-ARCHITECTURE.md](https://github.com/wittywilla/WittyReader/blob/main/docs/SDUI-ARCHITECTURE.md).
 
 | Folder or file | What's in it |
 |---|---|
-| `src/App.tsx` | The library, settings and opening books. |
-| `src/theme.ts`, `src/themes.json` | The look: the server's themes, or one that follows the device. |
+| `src/App.tsx`, `src/Shell.tsx` | The app: routes, opening books, pairing with a server, and the top bar. |
+| `src/pages/` | The pages (library, shelf, a book, notes, import, settings, connecting, welcome), made on the device as server-driven documents, and the provider that asks a connected server for its pages. |
+| `src/web/` | WittyMediaServer's renderer and design system, copied unchanged by `scripts/sync-web.mjs`, with the app's own small seams beside them. |
+| `src/theme/`, `public/themes/` | The Look and Theme engine, theme import, and the server's fifteen themes. |
 | `src/books.ts` | Adding files (format, title, cover) and the reader host that keeps notes on the device. |
 | `src/epub.ts` | Unpacking EPUBs on the device: contents, cover, word counts, search. |
 | `src/store.ts` | The on-device database (IndexedDB): books, files and notes. |
 | `public/sw.js` | The service worker: shows unpacked EPUBs, keeps the app working offline. |
-| `desktop/` | The installed app: its window, its address, opening files from the system, and the installers. |
+| `desktop/` | The installed app: its window, its address, opening files from the system, the servers you add, and the installers. |
 
 ## Icons
 

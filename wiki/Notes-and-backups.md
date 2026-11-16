@@ -18,8 +18,8 @@ This means:
 
 ## Export a book's notes (to keep or move)
 
-In the library, choose **⋯ → Export notes** on a book. WittyReader saves
-`Title - notes.json`. It contains everything you made in that book:
+On a book's page, choose **Export notes**. WittyReader saves `Title - notes.json`. It contains
+everything you made in that book:
 
 - highlights with their colours and notes;
 - bookmarks;
@@ -27,10 +27,17 @@ In the library, choose **⋯ → Export notes** on a book. WittyReader saves
 
 It also records which book they belong to.
 
+## Every note at once
+
+**Notes** in the top bar lists every highlight, bookmark and drawing from every book. Filter by
+book, type or colour, show only those with a written note, or search. **Export as Markdown** saves
+what's shown as one readable file; **Export as backup (JSON)** saves one notes file per book, in a
+ZIP when there are several.
+
 ## Import notes
 
 1. Add the same book to WittyReader on the new device (or after clearing data).
-2. Open **Settings → Import notes…** and choose the `.json` file.
+2. Open **Import → Import notes…** and choose the `.json` file.
 
 WittyReader matches the notes to the book by its file fingerprint, or by its title if you're
 using a different copy. Notes already in the book aren't added twice, so importing the same file

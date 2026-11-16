@@ -21,18 +21,25 @@ books with it. It keeps the browser's copy of your library. [The installers](Ins
 Once installed (in Edge or Chrome on a computer), `.epub`, `.pdf` and `.cbz` files can be opened
 with WittyReader from your file manager's **Open with** menu.
 
-## 3. Add a book
+## 3. Choose a look
+
+The first time it opens, WittyReader offers a **Look** (the finish: glass, gloss, shape, type and
+spacing) and a **Theme** (the colours). **Match this device** follows your system's light or dark
+setting. Change either any time in **Settings**.
+
+## 4. Add a book
 
 Any of these work:
 
-- **Add books** at the top, or **Ctrl+O**, then pick one or more files.
+- **Add books** at the top, or **Ctrl+O**, then pick one or more files. The **Import** page has
+  the same button.
 - **Drag files** from your desktop or file manager onto the window.
 - **Open with → WittyReader** from your system, once installed.
 
 A single new book opens straight away. Several are added to your library together. Adding a book
 you already have just finds it.
 
-## 4. Read
+## 5. Read
 
 - **Moving:**
   - **Books:** tap or click the right edge, or press →. Tap the middle for the menus.

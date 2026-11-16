@@ -8,9 +8,9 @@ address, or leave private browsing. PDFs and comics still work either way.
 
 ### A book won't open: "is not a book WittyReader can open"
 
-WittyReader opens EPUB, PDF and CBZ files. Other formats, `.cbr` and `.cb7` comics, and books
-with copy protection (DRM) aren't supported yet. A file can also be damaged; try downloading it
-again.
+WittyReader opens EPUB, PDF and CBZ files. Other formats and `.cbr` and `.cb7` comics aren't
+supported yet. Books with copy protection (DRM) are refused. A file can also be damaged; try
+downloading it again.
 
 ### A PDF says it cannot be opened
 
@@ -20,7 +20,7 @@ PDF, or open it elsewhere.
 ### My library is empty after clearing browser data
 
 The library lives in the browser's storage for the site, so clearing it removes books and notes.
-Add the books again, then import any notes you exported (**Settings → Import notes…**). See
+Add the books again, then import any notes you exported (**Import → Import notes…**). See
 [Notes and backups](Notes-and-backups).
 
 ### The Define button is missing

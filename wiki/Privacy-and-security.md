@@ -7,7 +7,14 @@ handwriting are stored in your browser's own storage for WittyReader, on this de
 has no account, no analytics and no server of its own. Books are read and unpacked on the device
 itself.
 
-The one exception is something you choose: **Settings → Look up words online**. When it's on and
+There are two exceptions, and you choose both.
+
+**A server you add.** In the desktop app, **Settings → Servers** connects to a WittyMediaServer
+you name by its address. You approve the device from one already signed in to that server, and
+the app keeps a sign-in for it. The app calls only the servers you add, and removing one signs the
+device out and stops the app calling it.
+
+**Settings → Look up words online**. When it's on and
 you press **Define**, the word (and only the word) is sent to the free dictionary at
 dictionaryapi.dev. It's off until you turn it on, and the **Define** button is hidden while it's
 off.
@@ -34,11 +41,12 @@ and forms in a PDF. WittyReader keeps them in check:
 - WittyReader runs under a strict Content-Security-Policy:
   - only its own scripts run;
   - it can't load plugins or submit forms;
-  - the only outside address it may contact is the dictionary.
+  - the only outside addresses it may contact are the dictionary and, in the desktop app, the
+    servers you add.
 - The offline service worker only answers for WittyReader's own files and the open book. It
   never contacts other sites.
 - The installed desktop app runs the same pages in a sandbox, with no access to the rest of your computer. It refuses
-  every request to leave the app except the dictionary, once you've turned that on, and refuses camera, microphone,
-  location and notifications outright. Links you click open in your own browser.
+  every request to leave the app except the dictionary, once you've turned that on, and the servers you've added, and
+  refuses camera, microphone, location and notifications outright. Links you click open in your own browser.
 - Installing WittyReader as an app gives it no extra access to your files. It only sees the files
   you open with it.
