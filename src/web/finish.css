@@ -11,10 +11,10 @@
 @font-face { font-family: "Source Sans 3"; font-style: normal; font-weight: 200 900; font-display: swap; src: url("/fonts/source-sans-3-latin-wght-normal.woff2") format("woff2"); }
 @font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 200 900; font-display: swap; src: url("/fonts/source-serif-4-latin-wght-normal.woff2") format("woff2"); }
 @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: swap; src: url("/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); }
-html[data-type="humanist"] { --font: "Source Sans 3", Seravek, "Gill Sans Nova", Ubuntu, Calibri, "Segoe UI", sans-serif; }
-html[data-type="rounded"] { --font: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, "Segoe UI", sans-serif; }
-html[data-type="serif"] { --font: "Source Serif 4", "Iowan Old Style", Charter, Georgia, serif; }
-html[data-type="mono"] { --font: "JetBrains Mono", var(--font-mono); --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+html[data-type="humanist"] { --font: "Source Sans 3", Seravek, "Gill Sans Nova", Ubuntu, Calibri, "Segoe UI", var(--font-intl), sans-serif; }
+html[data-type="rounded"] { --font: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, "Segoe UI", var(--font-intl), sans-serif; }
+html[data-type="serif"] { --font: "Source Serif 4", "Iowan Old Style", Charter, Georgia, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", var(--font-intl), serif; }
+html[data-type="mono"] { --font: "JetBrains Mono", var(--font-mono), var(--font-intl); --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", SFMono-Regular, Menlo, Consolas, monospace; }
 html[data-type="mono"] body { letter-spacing: 0; }
 
 /* ---- the shape the look wears: the theme's radius times the look's multiple (data, from look.shape) ---- */
@@ -57,6 +57,9 @@ html[data-type="mono"] body { letter-spacing: 0; }
 /* With a scene, the frame lets it show: the page and the bars stop painting a flat page colour of their own. */
 html[data-scene] :is(.app, .main, .content) { background: transparent; }
 html[data-scene] .topbar { background: transparent; }
+/* ...until the page is scrolled under it: then it gains the page's colour, frosted, so its words read over posters. */
+html[data-scene] .app .topbar.under { background: rgb(var(--bg-rgb) / .86); box-shadow: 0 1px 0 var(--border); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3); } /* design-ok: one bar, only once scrolled under */
+@media (prefers-reduced-transparency: reduce) { html[data-scene] .app .topbar.under { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 /* ---- glass: the bars, menus, dialogs, panels and the Dock take the theme's recipe ---- */
 html[data-fx-glass="subtle"] :is(.sidebar, .topbar, .tabbar, .dock:not(.ctv-dock), .modal, [role=menu], .ui-menu, .popover, .sdui-widget, .ui-card) { background-image: linear-gradient(180deg, color-mix(in srgb, var(--glass-hi) 45%, transparent), transparent 70%); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-edge) 60%, transparent); }
@@ -102,6 +105,11 @@ html[data-fx-texture="subtle"] body::after, html[data-fx-texture="full"] body::a
 html[data-fx-texture="subtle"] body::after { background-image: radial-gradient(color-mix(in srgb, var(--fg) 7%, transparent) 0.6px, transparent 0.9px); background-size: 4px 4px; opacity: .5; }
 html[data-fx-texture="full"] body::after { background-image: repeating-linear-gradient(180deg, transparent 0 2px, color-mix(in srgb, var(--picture-bg) 18%, transparent) 2px 3px); }
 @media (prefers-reduced-motion: reduce), (prefers-reduced-transparency: reduce) { html[data-fx-texture="full"] body::after { opacity: .4; } }
+/* The CRT finish: scanlines (above) and a faint phosphor glow on the words. It is off for the high-contrast theme and when more contrast is asked for. */
+html[data-fx-texture="full"] body { text-shadow: 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+@media (prefers-contrast: more) { html[data-fx-texture] body::after { content: none; } html[data-fx-texture="full"] body { text-shadow: none; } }
+html[data-theme="contrast"][data-fx-texture] body::after { content: none; }
+html[data-theme="contrast"][data-fx-texture="full"] body { text-shadow: none; }
 
 /* ---- focus by look: ring (the default), ring-lift (the ring and a small rise), fill (the thing is the highlight) ---- */
 html[data-focus-style="fill"] :is(.btn, .dock-btn, .nav-link, .topnav-link, .sdui-row, .spec-row, [role=tab], [role=menuitem], .tab):focus-visible { background: var(--accent); color: var(--accent-fg); outline: none; box-shadow: none; }

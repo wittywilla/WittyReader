@@ -19,3 +19,24 @@ export function dotFor(badge: string, tones?: Record<string, unknown>): 'on' | '
   if (typeof tone === 'string') return 'off'
   return presenceClass(badge)
 }
+
+// The consoles of a games row (each card's props.console), most games first, for the bar over it: none when the row holds fewer than
+// two, where a bar would choose nothing.
+export function consolesOf(items: { props?: Record<string, unknown> }[]): { name: string; count: number }[] {
+  const n = new Map<string, number>()
+  for (const it of items) { const c = it.props?.console; if (typeof c === 'string' && c) n.set(c, (n.get(c) || 0) + 1) }
+  if (n.size < 2) return []
+  return [...n].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}
+
+// The row's cards on one console, or all of them with none chosen.
+export const onConsole = <T extends { props?: Record<string, unknown> }>(items: T[], name: string): T[] => (name ? items.filter((it) => it.props?.console === name) : items)
+
+// A row of tabs in someone's own order, without those they hid: those named come first in that order, the rest keep theirs after;
+// the tab showing stays, hidden or not.
+export function arrangeTabs<T extends { value: string }>(items: T[], order: string[] = [], hidden: string[] = [], showing = ''): T[] {
+  const at = new Map(order.map((id, i) => [id, i]))
+  return items.map((t, i) => ({ t, k: at.get(t.value) ?? order.length + i }))
+    .sort((a, b) => a.k - b.k).map((x) => x.t)
+    .filter((t) => t.value === showing || !hidden.includes(t.value))
+}
