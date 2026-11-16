@@ -115,12 +115,12 @@ export function plainText(s: string): string {
   return s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').trim()
 }
 
-export type ButtonSpec = { id: string; label: string; icon?: string; primary?: boolean; action?: Action; glyph?: 'a' | 'b' | 'x' | 'y' }
+export type ButtonSpec = { id: string; label: string; icon?: string; primary?: boolean; pressed?: boolean; action?: Action; glyph?: 'a' | 'b' | 'x' | 'y' }
 
 export function buttonsOf(p: Props | undefined): ButtonSpec[] {
   return list(p, 'actions').map((a) => {
     const m = (a || {}) as Props
-    return { id: str(m, 'id') || str(m, 'label'), label: str(m, 'label'), icon: str(m, 'icon') || undefined, primary: m.primary === true, action: m.action as Action | undefined, ...(['a', 'b', 'x', 'y'].includes(str(m, 'glyph')) ? { glyph: str(m, 'glyph') as ButtonSpec['glyph'] } : {}) }
+    return { id: str(m, 'id') || str(m, 'label'), label: str(m, 'label'), icon: str(m, 'icon') || undefined, primary: m.primary === true, ...(m.pressed === true ? { pressed: true } : {}), action: m.action as Action | undefined, ...(['a', 'b', 'x', 'y'].includes(str(m, 'glyph')) ? { glyph: str(m, 'glyph') as ButtonSpec['glyph'] } : {}) }
   })
 }
 
@@ -306,9 +306,7 @@ function viewOf(x: Node, depth: number, parent: Node | undefined, l: Layout, pag
       if (sort) b.push('Sort: ' + optionLabel(fieldOf(sort)))
       for (const f of list(p, 'fields')) { const fl = fieldOf(f as Props); b.push(fl.label + ': ' + (optionLabel(fl) || 'Any')) }
       if (b.length) e.buttons = b
-      const c = num(p, 'count')
       if (str(p, 'countText')) text('count', str(p, 'countText'))
-      else if (c !== undefined) text('count', Math.trunc(c) + ' titles')
       break
     }
     case 'DetailHeader': {

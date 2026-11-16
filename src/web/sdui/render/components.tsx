@@ -6,7 +6,7 @@
 // parts, their line limits, the picture, the role and label. Nothing here works out what
 // to show.
 
-import { Fragment, lazy, memo, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, lazy, memo, Suspense, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { mediaUrl, serverBase } from '../../api'
 import { Placeholder } from '../../components/common'
@@ -23,16 +23,20 @@ import { useList } from '../gridView'
 import { KeyLegend } from '../../ui/KeyLegend'
 import { safeLink as safeHref } from '../../safeLink'
 import { buttonsOf, cardGap, creditGroups, factsOf, fieldOf, gridColumns, initials, type ButtonSpec, type View } from '../model'
-import { dotFor, focusedOf } from '../playModel'
+import { arrangeTabs, consolesOf, dotFor, focusedOf } from '../playModel'
 import { plan } from '../routes'
-import type { Node, Props } from '../types'
+import type { Action, Node, Props } from '../types'
 import { px, usePage } from './context'
 import { kindIcon, sduiIcon } from './icons'
+import { GameArtContext, RowLayoutContext, TabsContext, useGlyph } from './glyphs'
 import { chooseEpisodeView, useEpisodeView } from '../extras/episodeView'
 import { ControlView, FormView } from './forms'
 import { controlOf } from '../formsModel'
 import { Markdown } from './markdown'
 import { WidgetGridView } from './widgets'
+import { CardRouteContext } from './cardRoute'
+import { gameTitleLabel, gameTitleParts, titleLang, type GameTitles } from './titles'
+import { useGameTitlePref } from './useGameTitles'
 
 const NativeViewHost = lazy(() => import('./NativeViewHost'))
 const DetailExtras = lazy(() => import('../extras/DetailExtras'))
@@ -61,6 +65,12 @@ const clampClass = (lines: number | undefined) => (lines && lines > 0 ? ' sdui-c
 
 // The picture a card or block asks for: the address as the server wrote it.
 const picture = (image: Props | undefined) => (image && typeof image.url === 'string' && image.url.startsWith('/api/') ? mediaUrl(image.url) : '')
+// A game's cover for drawing it in its case: the card's own picture when that is the cover, else the game's cover (a wide row such as
+// Jump back in sends a backdrop, which isn't what goes on a cartridge's label).
+const coverOf = (p: Props) => {
+  const image = obj(p, 'image')
+  return image && str(image, 'kind') === 'poster' ? picture(image) : mediaUrl(`/api/items/${encodeURIComponent(String(p.itemId))}/poster?w=480`)
+}
 
 // Without a picture, a titled thing gets the colour of its own the app's other pages give
 // it (Placeholder); a thing with an icon, or no title, gets that icon on a plain ground.
@@ -80,6 +90,7 @@ function Picture({ image, kind, icon, contain, title }: { image: Props | undefin
 // opened in a new tab, and a button otherwise.
 function Pressable({ view, className, children, label, style, first, title }: { view: View; className?: string; children: ReactNode; label?: string; style?: CSSProperties; first?: boolean; title?: string }) {
   const page = usePage()
+  const route = useContext(CardRouteContext)
   const node = view.node
   const step = plan(node.action, { externalLinks: page.layout.externalLinks })
   const common = {
@@ -92,7 +103,7 @@ function Pressable({ view, className, children, label, style, first, title }: { 
   }
   // Someone in a list that is operated by OK (the lobby) is a stop even with nowhere to go.
   if (step.do === 'nothing' || page.inert) return <div {...common} role={view.role === 'button' ? 'group' : undefined} tabIndex={node.props?.focusable === true ? 0 : undefined}>{children}</div>
-  if (step.do === 'go') return <Link {...common} to={step.to}>{children}</Link>
+  if (step.do === 'go') return <Link {...common} to={view.type === 'Card' ? route(step.to) : step.to}>{children}</Link>
   if (step.do === 'open') return <a {...common} href={safeHref(step.url) || undefined} target="_blank" rel="noopener noreferrer">{children}</a>
   return <button type="button" {...common} onClick={() => page.act(node.action, view)}>{children}</button>
 }
@@ -100,6 +111,12 @@ function Pressable({ view, className, children, label, style, first, title }: { 
 // ---------------------------------------------------------------- cards
 
 const list0 = (v: unknown) => (Array.isArray(v) && typeof v[0] === 'string' ? v[0] as string : '')
+
+// A card's badges as sent, each whole ("3D era" is one badge, not two); the joined text when the props have none.
+const badgesOf = (p: Record<string, unknown>, joined?: string) => {
+  const sent = Array.isArray(p.badges) ? p.badges.filter((b): b is string => typeof b === 'string' && b !== '') : []
+  return sent.length ? sent : (joined || '').split(' ').filter(Boolean)
+}
 
 const SHAPE_CLASS: Record<string, string> = { poster: '', landscape: ' wide', square: ' square', circle: ' square sdui-round', chip: '' }
 
@@ -109,6 +126,9 @@ export const CardView = memo(function CardView({ view, showTitles }: { view: Vie
   const style = str(p, 'style'), shape = str(p, 'shape') || 'poster'
   const shows = view.shows || []
   const text = view.text || {}
+  // A game's name as the profile prefers it (/me/ui gameTitles), when the card carries the game's other names.
+  const [titlePref] = useGameTitlePref()
+  const gameName = p.kind === 'game' && p.titles && text.title ? gameTitleParts({ title: text.title, titles: obj(p, 'titles') as GameTitles }, titlePref) : null
   if (shape === 'chip') {
     return <Pressable view={view} className="chip sdui-chip">{p.icon ? sduiIcon(p.icon) : null}<span>{text.title}</span></Pressable>
   }
@@ -137,12 +157,17 @@ export const CardView = memo(function CardView({ view, showTitles }: { view: Vie
   }
   const channel = style === 'channel'
   const now = obj(p, 'now')
+  // A shell may draw a game's picture its own way (WittyPlay's Game pictures: fitted, or in its case); null keeps the picture as sent.
+  const gameArt = useContext(GameArtContext)
+  const drawn = gameArt && p.kind === 'game' && p.itemId != null
+    ? gameArt.art({ itemId: String(p.itemId), console: str(p, 'console'), image: coverOf(p), title: text.title || str(p, 'title') })
+    : null
   return (
-    <Pressable view={view} className={'card' + (SHAPE_CLASS[shape] ?? '') + (style === 'game' ? ' sdui-game' : '') + (channel ? ' sdui-channel' : '')} title={str(p, 'title') || undefined}>
+    <Pressable view={view} className={'card' + (SHAPE_CLASS[shape] ?? '') + (style === 'game' ? ' sdui-game' : '') + (channel ? ' sdui-channel' : '') + (style === 'plate' || style === 'block' || style === 'logo' ? ' sdui-' + style : '')} title={(gameName ? gameTitleLabel({ title: text.title, titles: obj(p, 'titles') as GameTitles }, titlePref) : str(p, 'title')) || undefined}>
       {text.rank && <span className="sdui-rank" aria-hidden="true">{text.rank}</span>}
       <div className="poster">
-        <Picture image={obj(p, 'image')} kind={p.kind} icon={p.icon} contain={channel || str(obj(p, 'image'), 'kind') === 'logo'} title={channel ? undefined : text.title || str(p, 'title') || undefined} />
-        {shows.includes('badges') && <span className="sdui-badges">{(text.badges || '').split(' ').map((b) => <span key={b} className="badge">{b}</span>)}</span>}
+        {drawn ?? <Picture image={obj(p, 'image')} kind={p.kind} icon={p.icon} contain={str(obj(p, 'image'), 'kind') === 'logo'} title={channel ? undefined : gameName?.main || text.title || str(p, 'title') || undefined} />}
+        {shows.includes('badges') && <span className="sdui-badges">{badgesOf(p, text.badges).map((b) => <span key={b} className="badge" data-badge={b.toLowerCase()}>{b}</span>)}</span>}
         {shows.includes('unwatched') && <span className="badge count" aria-hidden="true">{text.unwatched}</span>}
         {shows.includes('watched') && <span className="badge seen" aria-hidden="true"><IconCheck /></span>}
         {str(p, 'playId') && <div className="play"><span><IconPlay /></span></div>}
@@ -157,7 +182,8 @@ export const CardView = memo(function CardView({ view, showTitles }: { view: Vie
         </>
       ) : (
         <>
-          {text.title && <div className={'title' + (view.lines?.title && view.lines.title > 1 ? ' sdui-clamp' : '')} style={view.lines?.title && view.lines.title > 1 ? clamp(view.lines.title) : undefined}>{text.title}</div>}
+          {text.title && <div className={'title' + (view.lines?.title && view.lines.title > 1 ? ' sdui-clamp' : '')} style={view.lines?.title && view.lines.title > 1 ? clamp(view.lines.title) : undefined} lang={gameName ? titleLang(gameName.main) : undefined}>{gameName ? gameName.main : text.title}</div>}
+          {gameName?.sub && <div className="sub game-title-sub" lang={titleLang(gameName.sub)}>{gameName.sub}</div>}
           {(text.subtitle || text.remaining) && <div className="sub">{[text.subtitle, text.remaining].filter(Boolean).join(' · ')}</div>}
           {text.synopsis && <div className="sub sdui-synopsis sdui-clamp" style={clamp(view.lines?.synopsis)}>{text.synopsis}</div>}
         </>
@@ -212,7 +238,19 @@ function Heading({ view, level = 2, id }: { view: View; level?: 2 | 3; id: strin
 
 function StateLine({ view }: { view: View }) {
   const page = usePage()
-  if (view.state === 'empty') return <p className="muted sdui-empty">{view.text?.empty || 'Nothing here yet.'}</p>
+  if (view.state === 'empty') {
+    // What the server says: the message, a line of advice, and one button that runs an ordinary action (docs/SDUI.md, empty sections).
+    const hint = str(view.node.props, 'emptyHint')
+    const go = obj(view.node.props, 'emptyAction')
+    const action = go && obj(go, 'action') as unknown as Action | undefined
+    return (
+      <div className="sdui-empty sdui-empty-state">
+        <p className="sdui-empty-text">{view.text?.empty || 'Nothing here yet.'}</p>
+        {hint && <p className="muted sdui-empty-hint">{hint}</p>}
+        {go && action && str(go, 'label') && <button type="button" className="btn primary sm" disabled={page.inert} onClick={() => !page.inert && page.act(action, view)}>{str(go, 'label')}</button>}
+      </div>
+    )
+  }
   if (view.state === 'error' || page.failed(view.id)) {
     return <p className="sdui-error" role="alert"><span>Couldn’t load this</span> <button type="button" className="btn sm" onClick={() => page.more(view.id)} disabled={page.busy(view.id)}>Retry</button></p>
   }
@@ -265,12 +303,25 @@ function ShelfView({ view, depth }: { view: View; depth: number }) {
   // focusGrow: the focused card is the large one and the rest stay small; detail: its title, line and actions under the row.
   const grow = view.node.props?.focusGrow === true && !chips && !tiles
   const detail = view.node.props?.detail === true && !chips && !tiles
+  // A games row whose cards say their console gets a bar of its consoles over it (All first): choosing one narrows the row.
+  const consoles = grow ? consolesOf(view.children.map((c) => c.node)) : []
+  const [onlyConsole, setOnlyConsole] = useState('')
+  const shown = onlyConsole && consoles.some((c) => c.name === onlyConsole) ? view.children.filter((c) => c.node.props?.console === onlyConsole) : view.children
   const [focusId, setFocusId] = useState('')
-  const focused = focusedOf(view.children, focusId)
+  const focused = focusedOf(shown, focusId)
+  // A shell may lay a growing row out as a grid or a list (WittyPlay's layout choice); up and down then move between its lines.
+  const chosenLayout = useContext(RowLayoutContext)
+  const laid = grow ? chosenLayout : 'shelf'
+  const lines = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (laid === 'shelf' || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') || e.altKey || e.ctrlKey || e.metaKey) return
+    const to = cardToward(e.currentTarget, document.activeElement as HTMLElement | null, e.key === 'ArrowUp' ? -1 : 1)
+    if (to) { e.preventDefault(); e.stopPropagation(); to.focus(); to.scrollIntoView?.({ block: 'nearest' }) }
+  }
   return (
-    <section className={'hub sdui-shelf' + (grow ? ' focus-grow' : '') + (view.type === 'Carousel' ? ' sdui-carousel' : '') + (view.node.props?.focusGrow === true ? ' sdui-focusgrow' : '') + (view.node.props?.numbered ? ' numbered' : '')} style={{ ...cardVars(view, page.pt), '--peek': view.peek || 0, ...scopeStyle(view.node) } as CSSProperties} data-scope={view.scope} data-sdui-section={depth === 1 ? view.id : undefined} aria-busy={waiting || undefined}>
+    <section className={'hub sdui-shelf' + (grow ? ' focus-grow layout-' + laid : '') + (grow && detail ? ' has-detail' : '') + (view.type === 'Carousel' ? ' sdui-carousel' : '') + (view.node.props?.focusGrow === true ? ' sdui-focusgrow' : '') + (view.node.props?.numbered ? ' numbered' : '')} style={{ ...cardVars(view, page.pt), '--peek': view.peek || 0, ...scopeStyle(view.node) } as CSSProperties} data-scope={view.scope} data-sdui-section={depth === 1 ? view.id : undefined} aria-busy={waiting || undefined}>
       <Heading view={view} id={id} />
       {view.state === 'deferred' && !failed && <Near onNear={() => page.more(view.id)} />}
+      {consoles.length > 0 && !waiting && !failed && <ConsoleBar consoles={consoles} total={view.children.length} value={onlyConsole} onChange={(c) => { setOnlyConsole(c); setFocusId('') }} label={(view.text?.title || view.label || 'Games') + ': consoles'} />}
       {failed || view.state === 'empty' ? <StateLine view={view} /> : tiles && !waiting ? (
         // Plain tiles (libraries) wrap, as the app's library tiles always have.
         <div className="lib-tiles" role="list" aria-labelledby={view.text?.title ? id : undefined} aria-label={view.text?.title ? undefined : view.label} data-nav-group>
@@ -279,8 +330,8 @@ function ShelfView({ view, depth }: { view: View; depth: number }) {
       ) : (
         <div className="row-wrap">
           <button ref={prev} type="button" className="row-arrow prev" tabIndex={-1} aria-hidden="true" onClick={() => by(-1)} hidden><IconLeft /></button>
-          <div className={'row' + (chips ? ' sdui-chips' : '')} ref={row} data-nav-group role="list" aria-labelledby={view.text?.title ? id : undefined} aria-label={view.text?.title ? undefined : view.label || undefined}>
-            {waiting ? <Placeholders view={view} /> : view.children.map((c) => <div role="listitem" key={c.id} className={'sdui-item' + (grow && c.id === focused?.id ? ' grown' : '')} onFocus={grow || detail ? () => setFocusId(c.id) : undefined} onPointerEnter={grow || detail ? () => setFocusId(c.id) : undefined}><CardView view={c} showTitles={showTitles} /></div>)}
+          <div className={'row' + (chips ? ' sdui-chips' : '')} ref={row} data-nav-group role="list" onKeyDown={lines} aria-labelledby={view.text?.title ? id : undefined} aria-label={view.text?.title ? undefined : view.label || undefined}>
+            {waiting ? <Placeholders view={view} /> : shown.map((c) => <div role="listitem" key={c.id} className={'sdui-item' + (grow && c.id === focused?.id ? ' grown' : '')} onFocus={grow || detail ? () => setFocusId(c.id) : undefined} onPointerEnter={grow || detail ? () => setFocusId(c.id) : undefined}><CardView view={c} showTitles={showTitles} /></div>)}
             {view.hasMore && !waiting && <Near horizontal root={row} onNear={() => page.more(view.id)} />}
             {page.busy(view.id) && !waiting && <Placeholders view={{ ...view, placeholders: 2 }} />}
             {seeAllCard && !waiting && !view.hasMore && <div role="listitem" className="sdui-item"><SeeAllCard to={view.seeAll!} label={seeAllLabel} title={view.text?.title} wide={wideCards} /></div>}
@@ -290,6 +341,75 @@ function ShelfView({ view, depth }: { view: View; depth: number }) {
       )}
       {detail && focused && !waiting && !failed && <ShelfDetail view={focused} parent={view} />}
     </section>
+  )
+}
+
+// The card a line up (-1) or down (1) from the focused one in a wrapped row: the nearest by its middle, or none at the edge.
+function cardToward(row: HTMLElement, at: HTMLElement | null, dir: -1 | 1): HTMLElement | null {
+  if (!at || !row.contains(at)) return null
+  const here = at.getBoundingClientRect()
+  const mid = here.left + here.width / 2
+  let best: HTMLElement | null = null, bestScore = Infinity
+  for (const c of Array.from(row.querySelectorAll<HTMLElement>('.card'))) {
+    if (c === at) continue
+    const r = c.getBoundingClientRect()
+    const dy = dir < 0 ? here.top - r.bottom : r.top - here.bottom
+    if (dy < -4) continue
+    const score = dy * 4 + Math.abs(r.left + r.width / 2 - mid)
+    if (score < bestScore) { best = c; bestScore = score }
+  }
+  return best
+}
+
+// The consoles of a games row as a row of chips (a toolbar of toggle buttons: arrows, a remote and a pad reach each one, and a click,
+// Enter or A chooses). It scrolls sideways on a narrow screen, with arrows to page it where a pointer is.
+function ConsoleBar({ consoles, total, value, onChange, label }: { consoles: { name: string; count: number }[]; total: number; value: string; onChange: (c: string) => void; label: string }) {
+  const bar = useRef<HTMLDivElement | null>(null)
+  const page = usePage()
+  const by = (dir: number) => { const el = bar.current; if (el) el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: page.reducedMotion ? 'auto' : 'smooth' }) }
+  // Between the tabs and the row, for the arrows of a keyboard, a remote or a pad: down from the tabs comes here, down from here goes to
+  // the row, up from the row comes back, and left and right move along the chips. Read before the page's own arrows (capture).
+  useEffect(() => {
+    const own = bar.current
+    const section = own?.closest('section')
+    if (!own || !section) return
+    const keys = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
+      const at = document.activeElement as HTMLElement | null
+      if (!at) return
+      const chips = Array.from(own.querySelectorAll<HTMLElement>('.sdui-console-chip'))
+      const chosen = () => own.querySelector<HTMLElement>('.sdui-console-chip.on') || chips[0]
+      const go = (el: HTMLElement | null | undefined) => { if (!el) return; e.preventDefault(); e.stopPropagation(); el.focus(); el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }) }
+      const inBar = own.contains(at)
+      if (inBar) {
+        const i = chips.indexOf(at)
+        if (e.key === 'ArrowRight') go(chips[i + 1] || at)
+        else if (e.key === 'ArrowLeft') go(chips[i - 1] || at)
+        else if (e.key === 'ArrowDown') go(section.querySelector<HTMLElement>('.row .sdui-item.grown .card, .row .card'))
+        else if (e.key === 'ArrowUp') go(page.doc && document.querySelector<HTMLElement>('[role=tab][aria-selected=true]'))
+        return
+      }
+      const rowEl = section.querySelector<HTMLElement>('.row')
+      if (e.key === 'ArrowUp' && rowEl?.contains(at) && !cardToward(rowEl, at, -1)) go(chosen())
+      else if (e.key === 'ArrowDown' && at.getAttribute('role') === 'tab' && at.getAttribute('aria-selected') === 'true' && section.isConnected && section.getClientRects().length) go(chosen())
+    }
+    window.addEventListener('keydown', keys, true)
+    return () => window.removeEventListener('keydown', keys, true)
+  }, [page.doc])
+  const chip = (name: string, text: string, count: number) => (
+    <button key={name || 'all'} type="button" className={'sdui-console-chip' + (value === name ? ' on' : '')} aria-pressed={value === name} onClick={() => onChange(name)}>
+      <span>{text}</span><span className="sdui-console-count" aria-label={count === 1 ? '1 game' : count + ' games'}>{count}</span>
+    </button>
+  )
+  return (
+    <div className="sdui-console-bar">
+      <button type="button" className="sdui-console-arrow prev" tabIndex={-1} aria-hidden="true" onClick={() => by(-1)}><IconLeft /></button>
+      <div className="sdui-console-chips" ref={bar} role="toolbar" aria-label={label} data-nav-group>
+        {chip('', 'All', total)}
+        {consoles.map((c) => chip(c.name, c.name, c.count))}
+      </div>
+      <button type="button" className="sdui-console-arrow next" tabIndex={-1} aria-hidden="true" onClick={() => by(1)}><IconRight /></button>
+    </div>
   )
 }
 
@@ -304,12 +424,32 @@ function ItemActions({ view }: { view: View }) {
 // The panel under a row whose focused card is bound to it: its title large, its line, and its actions as buttons with their key.
 function ShelfDetail({ view, parent }: { view: View; parent: View }) {
   const text = view.text || {}
-  const buttons = buttonsOf(view.node.props)
-  return (
-    <div className="sdui-detail" aria-live="polite" data-for={view.id}>
+  // An item with no actions of its own is opened by the card's action: shown as A.
+  // With none marked primary, the A button is (Resume, Play): what the accent says "do this next" of.
+  const sent = buttonsOf(view.node.props)
+  const lead = sent.some((b) => b.primary) ? -1 : Math.max(0, sent.findIndex((b) => b.glyph === 'a'))
+  const own = sent.map((b, i) => (i === lead ? { ...b, primary: true } : b))
+  const buttons: ButtonSpec[] = own.length ? own : view.node.action ? [{ id: 'open', label: 'Open', glyph: 'a', primary: true, action: view.node.action }] : []
+  // A game's card brings its bio, when the shell draws one (WittyPlay: logo, console, maker, rating, pictures and achievements).
+  const p = view.node.props || {}
+  const game = p.kind === 'game' && p.itemId != null ? String(p.itemId) : ''
+  // The shell's own part for a game (WittyPlay: how this game's picture is drawn): one more button at the end of the row.
+  const gameArt = useContext(GameArtContext)
+  const extra = game && gameArt?.detail ? gameArt.detail({ itemId: game, console: str(p, 'console'), image: picture(obj(p, 'image')), title: text.title || '' }) : null
+  const cover = game && gameArt?.cover ? gameArt.cover({ itemId: game, console: str(p, 'console'), image: picture(obj(p, 'image')), title: text.title || '' }) : null
+  const bio = game && gameArt?.bio ? gameArt.bio : null
+  const actions = buttons.length > 0 && <ActionButtons buttons={buttons} view={parent} className="sdui-detail-actions" />
+  const title = (
+    <>
       <b className="sdui-detail-title">{text.title}</b>
       {text.subtitle && <span className="sdui-detail-line">{text.subtitle}</span>}
-      {buttons.length > 0 && <ActionButtons buttons={buttons} view={parent} className="sdui-detail-actions" />}
+    </>
+  )
+  const buttonRow = extra ? <div className="sdui-detail-actrow" data-nav-group>{actions}{extra}</div> : actions
+  const head = <>{title}{buttonRow}</>
+  return (
+    <div className={'sdui-detail' + (bio ? ' has-bio' : '')} aria-live="polite" data-for={view.id}>
+      {bio ? bio({ itemId: game, console: str(p, 'console'), image: picture(obj(p, 'image')), title: text.title || '', top: cover, actions: buttonRow, children: title }) : head}
     </div>
   )
 }
@@ -383,12 +523,14 @@ function QrView({ view }: { view: View }) {
 
 function ActionButtons({ buttons, view, className }: { buttons: ButtonSpec[]; view: View; className?: string }) {
   const page = usePage()
+  const drawGlyph = useGlyph()
   return (
     <div className={className || 'actions'}>
       {buttons.map((b) => {
         const step = plan(b.action, { externalLinks: page.layout.externalLinks })
         const cls = 'btn' + (b.primary ? ' primary' : '')
-        const body = <>{b.glyph ? <i className={'sdui-glyph g-' + b.glyph} aria-hidden="true">{b.glyph.toUpperCase()}</i> : sduiIcon(b.icon)} {b.label}</>
+        const glyph = b.glyph && (drawGlyph ? <i className={'sdui-glyph drawn g-' + b.glyph} aria-hidden="true">{drawGlyph(b.glyph)}</i> : <i className={'sdui-glyph g-' + b.glyph} aria-hidden="true">{b.glyph.toUpperCase()}</i>)
+        const body = <>{glyph || sduiIcon(b.icon)} {b.label}</>
         if (step.do === 'nothing') return null
         if (step.do === 'go' && !page.inert) return <Link key={b.id} className={cls} to={step.to} data-tv-first={b.primary || undefined}>{body}</Link>
         return <button key={b.id} type="button" className={cls} data-tv-first={b.primary || undefined} onClick={() => !page.inert && page.act(b.action, view)}>{body}</button>
@@ -511,6 +653,17 @@ function DetailHeaderView({ view }: { view: View }) {
   const buttons = buttonsOf(p)
   const primary = buttons.find((b) => b.primary)
   const overview = view.text?.overview
+  const button = (b: (typeof buttons)[number]) => {
+    const step = plan(b.action, { externalLinks: page.layout.externalLinks })
+    if (step.do === 'nothing') return null
+    const icon = b.glyph ? <i className={'sdui-glyph g-' + b.glyph} aria-hidden="true">{b.glyph.toUpperCase()}</i> : sduiIcon(b.icon)
+    // The main action is a filled button; the others, as on every app, an icon with its name under it.
+    const cls = b.primary ? 'btn primary' : 'sdui-action'
+    const body = b.primary ? <>{icon} {b.label}</> : <><span className="sdui-action-icon">{icon}</span><span className="sdui-action-label">{b.label}</span></>
+    const on = !b.primary && b.pressed ? true : undefined
+    if (step.do === 'go' && !page.inert) return <Link key={b.id} className={cls} to={step.to} data-tv-first={b === primary || undefined}>{body}</Link>
+    return <button key={b.id} type="button" className={cls} aria-pressed={on} data-tv-first={b === primary || undefined} onClick={() => !page.inert && page.act(b.action, view)}>{body}</button>
+  }
   return (
     <div className={'sdui-detail layout-' + layout} role="region" aria-label={view.label} style={scopeStyle(view.node)} data-sdui-stop={view.id} data-sdui-focus={view.node.focus ? view.id : undefined} data-sdui-section={view.id}>
       {layout !== 'compact' && (
@@ -532,15 +685,11 @@ function DetailHeaderView({ view }: { view: View }) {
             </div>
           )}
           {view.progress !== undefined && view.progress > 0 && <div className="sdui-detail-progress" role="progressbar" aria-label="Watched" aria-valuemin={0} aria-valuemax={100} aria-valuenow={view.progress}><i style={{ width: view.progress + '%' }} /></div>}
+          {/* The main action, then the rest (Watch later, Mark watched, Download, Share) as icons with their names, in one
+              centred row that scrolls sideways only when it is wider than the screen: the same on every app. */}
           <div className="actions sdui-detail-actions" data-nav-group>
-            {buttons.map((b) => {
-              const step = plan(b.action, { externalLinks: page.layout.externalLinks })
-              if (step.do === 'nothing') return null
-              const cls = 'btn' + (b.primary ? ' primary' : '')
-              const body = <>{b.glyph ? <i className={'sdui-glyph g-' + b.glyph} aria-hidden="true">{b.glyph.toUpperCase()}</i> : sduiIcon(b.icon)} {b.label}</>
-              if (step.do === 'go' && !page.inert) return <Link key={b.id} className={cls} to={step.to} data-tv-first={b === primary || undefined}>{body}</Link>
-              return <button key={b.id} type="button" className={cls} data-tv-first={b === primary || undefined} onClick={() => !page.inert && page.act(b.action, view)}>{body}</button>
-            })}
+            {buttons.filter((b) => b.primary).map(button)}
+            {buttons.some((b) => !b.primary) && <div className="sdui-detail-more">{buttons.filter((b) => !b.primary).map(button)}</div>}
             {!page.inert && <Suspense fallback={null}><DetailExtras place="tools" header={view.node} doc={page.doc} /></Suspense>}
           </div>
           {overview && (
@@ -792,12 +941,26 @@ function TabsView({ view, depth }: { view: View; depth: number }) {
   const label = 'Views'
   const panel = 'sdui-panel-' + view.id
   const icon = (t: View) => sduiIcon(t.node.props?.icon)
+  // A shell's own tabs beside the page's (WittyPlay's Consoles), after the tab each names, unless the page has that tab itself.
+  const extra = useContext(TabsContext)
+  const mine = !!extra && extra.page === page.doc.page.id && depth === 1
+  const withExtra = <T extends { value: string; label: ReactNode; to?: string }>(items: T[]): T[] => {
+    if (!mine || !extra) return items
+    const out = [...items]
+    for (const x of extra.tabs) {
+      if (out.some((i) => i.value === x.id)) continue
+      const at = out.findIndex((i) => i.value === x.after)
+      out.splice(at < 0 ? out.length : at + 1, 0, { value: x.id, label: x.label, to: x.to } as T)
+    }
+    return arrangeTabs(out, extra.order, extra.hidden, selected.id)
+  }
   return (
     <section className={'sdui-tabs' + (view.type === 'CrossBar' ? ' sdui-crossbar' : '')} data-sdui-section={depth === 1 ? view.id : undefined} style={scopeStyle(view.node)}>
       <div data-sdui-tabs={view.id} data-sdui-head>
         {str(view.node.props, 'style') === 'segments'
           ? <Segmented label={label} value={selected.id} onChange={choose} options={tabs.map((t) => ({ value: t.id, label: t.text?.title || '', icon: icon(t) }))} />
-          : <TabStrip label={label} value={selected.id} onChange={choose} panelId={panel} items={tabs.map((t) => ({ value: t.id, label: <>{icon(t)}{t.text?.title}</> }))} />}
+          : <TabStrip label={label} value={selected.id} onChange={choose} panelId={panel} items={withExtra(tabs.map((t) => ({ value: t.id, label: <>{icon(t)}{t.text?.title}</> })))} />}
+        {mine && extra?.end}
       </div>
       <div id={panel} role="tabpanel" aria-label={selected.text?.title} className="sdui-stack" aria-busy={page.busy('page') || undefined}
         onFocus={cross ? aim : undefined} onMouseOver={cross ? aim : undefined}>
@@ -831,7 +994,7 @@ function FilterBarView({ view }: { view: View }) {
       ))}
       {chosen.length > 0 && <button type="button" className="btn sm ghost" onClick={() => page.setQuery(Object.fromEntries(fields.map((f) => [f.id, ''])))}>Clear</button>}
       <span className="grow" />
-      {view.text?.count && <span className="count" role="status">{Number(num(p, 'count')).toLocaleString()} {num(p, 'count') === 1 ? 'title' : 'titles'}</span>}
+      {view.text?.count && <span className="count" role="status">{view.text.count}</span>}
     </div>
   )
 }
@@ -931,14 +1094,24 @@ function NoticeView({ view }: { view: View }) {
   const p = view.node.props || {}
   const step = plan(view.node.action, { externalLinks: page.layout.externalLinks })
   const focus = { 'data-sdui-focus': view.node.focus ? view.id : undefined, 'data-tv-first': view.node.focus?.default || undefined }
+  const main = view.text?.button && step.do !== 'nothing' ? (
+    step.do === 'go' && !page.inert ? <Link className="btn sm" to={step.to} {...focus}>{view.text.button}</Link>
+      : step.do === 'open' ? <a className="btn sm" href={safeHref(step.url) || undefined} target="_blank" rel="noopener noreferrer" {...focus}>{view.text.button}</a>
+        : <button type="button" className="btn sm" {...focus} onClick={() => !page.inert && page.act(view.node.action, view)}>{view.text.button}</button>
+  ) : null
+  const dismiss = obj(p, 'dismiss')
+  const dismissing: Action | undefined = dismiss && str(dismiss, 'op') ? { type: 'command', op: str(dismiss, 'op'), params: (obj(dismiss, 'params') || {}) as Record<string, unknown> } : undefined
   return (
     <div className={'ui-notice sdui-notice ' + (TONE[str(p, 'tone')] || 'info')} role={view.role} data-sdui-section={view.id} style={scopeStyle(view.node)}>
       {p.icon ? <span className="sdui-notice-ic" aria-hidden="true">{sduiIcon(p.icon)}</span> : null}
       <div className="ui-notice-text">{view.text?.title && <strong>{view.text.title}</strong>}<span>{view.text?.text}</span></div>
-      {view.text?.button && step.do !== 'nothing' && (
-        step.do === 'go' && !page.inert ? <Link className="btn sm" to={step.to} {...focus}>{view.text.button}</Link>
-          : step.do === 'open' ? <a className="btn sm" href={safeHref(step.url) || undefined} target="_blank" rel="noopener noreferrer" {...focus}>{view.text.button}</a>
-            : <button type="button" className="btn sm" {...focus} onClick={() => !page.inert && page.act(view.node.action, view)}>{view.text.button}</button>
+      {(main || dismissing) && (
+        <div className="sdui-notice-actions">
+          {main}
+          {/* Dismiss: a second, quieter button after the main one (below it on a phone). It runs its command, and the
+              page is asked for again. */}
+          {dismissing && <button type="button" className="btn sm ghost" onClick={() => !page.inert && page.act(dismissing, view)}>{str(dismiss, 'label') || 'Dismiss'}</button>}
+        </div>
       )}
     </div>
   )

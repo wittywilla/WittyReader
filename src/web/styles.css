@@ -27,7 +27,13 @@
   --radius: 10px;
   --sidebar: 240px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  --font: "Inter", "Segoe UI Variable Text", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Other scripts, from the fonts every system has (none are bundled): names in Japanese, Korean, Chinese, Cyrillic,
+     Greek and more, such as games known by their original titles. Japanese first, as most such games are; the browser
+     still finds each character in the first of these that has it. Every --font ends with it. */
+  --font-intl: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP",
+    "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "PingFang SC", "PingFang TC", "Microsoft YaHei", "Microsoft JhengHei",
+    "Noto Sans CJK SC", "Noto Sans", "Droid Sans Fallback";
+  --font: "Inter", "Segoe UI Variable Text", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, var(--font-intl), sans-serif;
   /* Channels of --bg and --accent for translucent mixes: rgb(var(--bg-rgb) / .5) */
   --bg-rgb: 15 17 21;
   --accent-rgb: 121 85 255;
@@ -98,6 +104,7 @@
   --rail: 76px;                            /* the side menu collapsed to icons */
   --tabbar-h: 60px;                        /* the phone's bottom bar */
   --tabbar-space: 0px;                     /* room kept for that bar: set where it shows */
+  --overlay-foot: 0px;                     /* room menus, sheets and dialogs leave at the foot for a bar drawn over the page (the app's): set in shell.css */
   --dock-space: 0px;                       /* room kept for the audio bar or mini player */
 
   /* ---- shape: follows the theme's --radius ---- */
@@ -252,6 +259,11 @@ button { cursor: pointer; }
 button:disabled { cursor: default; }
 img, svg { flex: none; }
 code, kbd { font-family: var(--font-mono); }
+/* A game's English name under its name in its own script ("Original with English below"; sdui/render/titles.ts). */
+span.game-title-sub { display: block; font-size: .8em; font-weight: 400; opacity: .78; margin-top: .1em; }
+/* Where BIOS files go, under a games library's console (components/ConsolePicker.tsx). */
+.game-bios-hint { margin: 8px 0 0; font-size: var(--text-md); overflow-wrap: anywhere; }
+.game-title-setting-note { margin: var(--sp-2) 0 0; color: var(--fg-2); }
 code { font-size: .92em; }
 input[type=range] { accent-color: var(--accent); }
 /* The slider: a thin track filled up to --pct (set it where the value changes). */
@@ -326,11 +338,18 @@ input[type=range] { accent-color: var(--accent); }
      halo of the page's colour: readable on any picture, light or dark. */
   .app:has(.hero, .detail-hero) .topbar { margin-bottom: calc(-1 * var(--topbar-h)); background: linear-gradient(rgb(var(--bg-rgb) / .9), rgb(var(--bg-rgb) / .8) 65%, rgb(var(--bg-rgb) / 0)); }
   .app:has(.hero, .detail-hero) .topbar :is(.section-row a, .topnav-link, .top-brand) { text-shadow: 0 0 2px rgb(var(--bg-rgb)), 0 0 8px rgb(var(--bg-rgb)); }
+  /* A link on a pill of its own (the active one, in most nav styles) is already readable there, and the
+     halo would smudge its dark words on the light pill. Crossbar marks it with a line instead, so keeps it. */
+  .app:not([data-nav-style="crossbar"]):has(.hero, .detail-hero) .topbar .topnav-link.active { text-shadow: none; }
   .app:has(.hero, .detail-hero) .topbar::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--bg); opacity: 0; animation: bar-solid linear both; animation-timeline: scroll(root); animation-range: var(--sp-4) calc(var(--topbar-h) * 3); }
   .app:has(.hero, .detail-hero) .topbar::after { animation: bar-solid linear both; animation-timeline: scroll(root); animation-range: var(--sp-4) calc(var(--topbar-h) * 3); }
   .app:has(.home.editing) .topbar { margin-bottom: 0; background: var(--bg); }
   /* The legal notice sits right under the bar, so the bar can't run over the picture and cover it. */
   .app:has(.legal-ack-bar) .topbar { margin-bottom: 0; background: var(--bg); }
+  /* Only the picture runs up under the bar. Anything before it (the page's title, a "Finish setting up"
+     notice) starts below the bar, as it does on a page with no picture at all. */
+  .app:has(.hero, .detail-hero) .content > .sdui:first-child > :first-child:not(.hero, .detail-hero, .sr-only),
+  .app:has(.hero, .detail-hero) .content > .sdui:first-child > .sr-only:first-child + :not(.hero, .detail-hero) { margin-top: var(--topbar-h); }
   @keyframes bar-solid { from { opacity: 0; } to { opacity: 1; } }
 }
 
@@ -664,15 +683,15 @@ h3.section-title { font-size: var(--text-lg); margin-top: var(--sp-6); }
 .empty p { margin: 0 0 var(--sp-4); max-width: 46ch; font-size: var(--text-md); }
 .toast { position: fixed; bottom: calc(var(--sp-5) + var(--dock-space) + var(--tabbar-space)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); background: var(--bg-4); color: var(--fg); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); border: 1px solid var(--border); box-shadow: var(--e-3); z-index: var(--z-toast); font-size: var(--text-md); font-weight: 500; animation: toast-in var(--dur-3) var(--ease-out); }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
-.modal-backdrop { position: fixed; inset: 0; background: var(--overlay); display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; z-index: var(--z-modal); padding: var(--sp-5); animation: fade-in var(--dur-2) ease-out; overflow: auto; overscroll-behavior: contain; }
-.modal { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-6); width: 100%; max-width: 640px; max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overflow: auto; box-shadow: var(--e-3); animation: dialog-in var(--dur-3) var(--ease-out); }
+.modal-backdrop { position: fixed; inset: 0; background: var(--overlay); display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; z-index: var(--z-modal); padding: var(--sp-5) var(--sp-5) calc(var(--sp-5) + var(--overlay-foot)); animation: fade-in var(--dur-2) ease-out; overflow: auto; overscroll-behavior: contain; }
+.modal { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-6); width: 100%; max-width: 640px; max-height: calc(100vh - 40px - var(--overlay-foot)); max-height: calc(100dvh - 40px - var(--overlay-foot)); overflow: auto; box-shadow: var(--e-3); animation: dialog-in var(--dur-3) var(--ease-out); }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(6px) scale(.985); } }
 .modal h2 { margin: 0 0 var(--sp-4); font-size: var(--text-xl); }
 .modal .actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-6); }
 /* Phones: dialogs come up from the bottom, in thumb's reach. */
 @media (max-width: 600px) {
-  .modal-backdrop { place-items: end center; padding: var(--sp-4) 0 0; }
-  .modal { width: 100% !important; max-width: none !important; max-height: 92dvh !important; border-radius: var(--r-xl) var(--r-xl) 0 0 !important; border-width: 1px 0 0; padding: var(--sp-5) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom)); animation-name: sheet-in; }
+  .modal-backdrop { place-items: end center; padding: var(--sp-4) 0 var(--overlay-foot); }
+  .modal { width: 100% !important; max-width: none !important; max-height: min(92dvh, calc(100dvh - var(--sp-4) - var(--overlay-foot))) !important; border-radius: var(--r-xl) var(--r-xl) 0 0 !important; border-width: 1px 0 0; padding: var(--sp-5) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom)); animation-name: sheet-in; }
   @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
 }
 

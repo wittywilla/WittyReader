@@ -104,7 +104,7 @@ html.tv-mode .sdui-widgets { gap: var(--space-l); }
 /* ---- the server's mark: a square badge, its content centred (never a bare letter) ---- */
 .brand-badge { display: inline-grid; place-items: center; flex: none; inline-size: 2rem; block-size: 2rem; border-radius: var(--r-md); background: var(--bg-3); color: var(--brand-accent); border: 1px solid var(--border); font-weight: 700; font-size: var(--text-md); line-height: 1; overflow: hidden; }
 .brand-badge.image { padding: 4px; background: var(--elev-2-fill); }
-.brand-badge img { inline-size: 100%; block-size: 100%; object-fit: contain; }
+.brand-badge img, .brand .brand-badge img { inline-size: 100%; block-size: 100%; object-fit: contain; } /* over .brand img and .top-brand img, which size a bare picture */
 
 /* ---- the rail: closed (icons and the mark), open (the full menu, on hover, focus or kept open), and a library's drawer ---- */
 @media (min-width: 901px) {
@@ -139,7 +139,14 @@ html.tv-mode .sdui-widgets { gap: var(--space-l); }
 .app[data-r-brand="center"] .topbar .top-brand { margin-inline: auto; }
 
 /* ---- finishes of the top-bar nav styles (data-nav-style on the frame), in the theme's own colours ---- */
-.app[data-nav-style="floatingGlassBar"] .topbar { margin: var(--space-s) var(--gutter) 0; border-radius: var(--r-full); background: color-mix(in srgb, var(--elev-2-fill) 86%, transparent); border: 1px solid var(--elev-2-line); box-shadow: var(--elev-3-shadow); background-image: linear-gradient(180deg, color-mix(in srgb, var(--on-image) 14%, transparent), transparent 60%); }
+.app[data-nav-style="floatingGlassBar"] .topbar { margin: var(--space-s) var(--gutter) 0; border-radius: var(--r-full); background: color-mix(in srgb, var(--elev-2-fill) 86%, transparent); border: 1px solid var(--elev-2-line); box-shadow: var(--elev-3-shadow); background-image: linear-gradient(180deg, color-mix(in srgb, var(--on-image) 14%, transparent), transparent 60%); padding-block: calc(var(--sp-3) - 1px); }
+/* The floating bar stands off the top by --space-s, so a picture runs up behind it by that much more than under a
+   bar at the edge, and has no hard edge under the glass. Anything before the picture starts below it. */
+@supports (animation-timeline: scroll()) {
+  .app[data-nav-style="floatingGlassBar"]:has(.hero, .detail-hero):not(:has(.home.editing, .legal-ack-bar)) .topbar { margin-bottom: calc(-1 * (var(--topbar-h) + var(--space-s))); }
+  .app[data-nav-style="floatingGlassBar"]:has(.hero, .detail-hero) .content > .sdui:first-child > :first-child:not(.hero, .detail-hero, .sr-only),
+  .app[data-nav-style="floatingGlassBar"]:has(.hero, .detail-hero) .content > .sdui:first-child > .sr-only:first-child + :not(.hero, .detail-hero) { margin-top: calc(var(--topbar-h) + var(--space-s)); }
+}
 .app[data-nav-style="cableBar"] .topbar { background: var(--bg-2); color: var(--fg); border-radius: 0; border-block-end: 2px solid var(--accent); }
 .app[data-nav-style="cableBar"] .topnav-link { color: var(--fg); border-radius: 0; border: 1px solid var(--border-strong); }
 .app[data-nav-style="cableBar"] .topnav-link.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
@@ -150,7 +157,14 @@ html.tv-mode .sdui-widgets { gap: var(--space-l); }
 .app[data-nav-style="teleKeys"] .topnav-link:nth-child(4n+2) { border-bottom-color: var(--ok); }
 .app[data-nav-style="teleKeys"] .topnav-link:nth-child(4n+3) { border-bottom-color: var(--warn); }
 .app[data-nav-style="teleKeys"] .topnav-link:nth-child(4n) { border-bottom-color: var(--accent); }
-.app[data-nav-style="crossbar"] .topnav { gap: var(--space-m); justify-content: center; min-inline-size: 0; flex: 1 1 0; overflow-x: auto; scrollbar-width: none; }
+.app[data-nav-style="crossbar"] .topnav { gap: var(--space-m); justify-content: flex-start; min-inline-size: 0; flex: 1 1 0; overflow-x: auto; scrollbar-width: none; }
+/* Centred while the categories fit; once they don't, they start at the left and scroll, rather than spilling
+   past the left edge where the first one can't be scrolled to (justify-content: center did that). */
+.app[data-nav-style="crossbar"] .topnav > :first-child { margin-inline-start: auto; }
+.app[data-nav-style="crossbar"] .topnav > :last-child { margin-inline-end: auto; }
+/* When they don't fit, the row fades out at its end, as a phone's row of sections does, rather than cutting the
+   last category off against the search, and the last one can scroll clear of the fade. */
+.app[data-nav-style="crossbar"] .topnav { padding-inline-end: var(--space-l); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--space-l)), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - var(--space-l)), transparent); } /* design-ok: a mask only reads how solid it is */
 .app[data-nav-style="crossbar"] .topnav-link { font-size: var(--role-title-size); background: none; border-radius: 0; border-bottom: 2px solid transparent; color: var(--fg-2); }
 .app[data-nav-style="crossbar"] .topnav-link.active { background: none; color: var(--fg); border-bottom-color: var(--accent); }
 .app[data-nav-style="ornamentTabs"] .topbar { margin: var(--space-m) auto 0; inline-size: fit-content; max-inline-size: calc(100% - 2 * var(--gutter)); border-radius: var(--r-full); background: var(--elev-2-fill); border: 1px solid var(--elev-2-line); box-shadow: var(--elev-3-shadow); }
@@ -278,6 +292,11 @@ body:has(.audio-bar:not(.full)) .ctv-page, body:has(.audio-bar:not(.full)) .tvm-
 .look-opts .layout-opt { display: grid; gap: var(--space-s); align-content: start; text-align: start; padding: var(--space-s); }
 .look-opts .layout-opt.on { outline: 3px solid var(--focus); outline-offset: 2px; }
 .look-opts .layout-opt .layout-thumb { inline-size: 100%; }
+/* Settings, Look: two pages, layout then colours. The chosen layout drawn large in the theme being tried. */
+.look-step { margin: 0 0 var(--space-s); font-size: var(--text-lg); }
+.look-colours-big { display: grid; justify-items: center; gap: var(--space-s); margin: 0 0 var(--space-m); }
+.look-colours-big .layout-thumb { inline-size: min(100%, 16rem); block-size: auto; border-radius: var(--radius); }
+.look-colours-big figcaption { color: var(--fg-2); }
 .oobe .layout-thumb { min-inline-size: 10rem; }
 
 /* ---- focusGrow: the focused card grows (1.45 on a television, 1.25 on a tablet or desktop, none on a phone); reduced motion keeps the ring ---- */
@@ -296,3 +315,55 @@ button.card { display: block; }
 .sdui-qr .qr { inline-size: var(--qr-size, 160px); block-size: var(--qr-size, 160px); }
 .sdui-qr figcaption { color: var(--fg-2); font-size: var(--text-sm); }
 .sdui-qr-address { overflow-wrap: anywhere; user-select: all; font-size: var(--text-xs); color: var(--fg-2); }
+
+/* ---- card styles the looks ask for: plate (title on the art, over a scrim along its foot), block (a flat cell of colour with its title,
+   teletext's) and logo (a contain-fitted logo on a plain tile, a satellite box's channel) ---- */
+.card.sdui-plate { position: relative; }
+.card.sdui-plate .title, .card.sdui-plate .sub { position: absolute; inset-inline: 0; margin: 0; padding-inline: var(--space-s); color: var(--on-image); text-shadow: 0 1px 2px color-mix(in srgb, var(--picture-bg) 70%, transparent); z-index: 2; }
+.card.sdui-plate .title { bottom: 1.4em; padding-top: var(--space-xl); background: linear-gradient(to top, color-mix(in srgb, var(--picture-bg) 78%, transparent), transparent); }
+.card.sdui-plate .sub { bottom: 0; padding-bottom: var(--space-xs); }
+.card.sdui-plate .poster::after { display: none; }
+.card.sdui-block .poster { background: var(--accent); aspect-ratio: 16 / 9; }
+.card.sdui-block .poster img, .card.sdui-block .poster .ph, .card.sdui-block .poster .sdui-noart { display: none; }
+.card.sdui-block .title { position: absolute; inset-inline: 0; top: 0; margin: 0; padding: var(--space-s); color: var(--accent-fg); font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); }
+.card.sdui-block { position: relative; border-radius: 0; }
+.card.sdui-block .poster { border-radius: 0; }
+.card.sdui-block .sub { display: none; }
+.card.sdui-logo .poster { background: var(--bg-3); aspect-ratio: 16 / 9; display: grid; place-items: center; }
+.card.sdui-logo .poster img { object-fit: contain; padding: var(--space-m); inline-size: 100%; block-size: 100%; }
+/* A crossbar's categories scroll sideways inside their own bar on a narrow window instead of widening the page. */
+.sdui-crossbar [data-sdui-tabs] { max-inline-size: 100%; overflow-x: auto; scrollbar-width: none; }
+.sdui-crossbar [role=tablist] { flex-wrap: nowrap; min-inline-size: max-content; }
+.sdui-crossbar { max-inline-size: 100%; overflow-x: clip; }
+/* ---- Dashboard polish: a greeting, tiles with a picture for what they are, depth, and room to breathe ---- */
+.sdui-greet { margin: 0 0 var(--space-m); font-size: var(--role-heading-size); font-weight: var(--weight-heading); letter-spacing: var(--tracking-heading); color: var(--fg); }
+.sdui-widget { background: linear-gradient(180deg, color-mix(in srgb, var(--elev-1-fill) 92%, var(--on-image)), var(--elev-1-fill)); box-shadow: var(--e-1); padding: var(--space-l); gap: var(--space-m); }
+.sdui-widget-title { display: flex; align-items: center; gap: var(--space-s); }
+.sdui-widget-ic { display: inline-grid; place-items: center; inline-size: 1.75rem; block-size: 1.75rem; border-radius: var(--r-full); background: var(--accent-soft); color: var(--accent-text); }
+.sdui-widget-ic svg { inline-size: 1rem; block-size: 1rem; }
+.sdui-widget-ic:empty { display: none; }
+.sdui-widget.kind-clock .sdui-widget-body { align-items: flex-end; }
+.sdui-widget.kind-clock .sdui-clock-time { font-size: calc(var(--role-display-size) * 1.15); }
+.sdui-widget.kind-serverStatus .sdui-row { border-block-end: 1px solid var(--border); border-radius: 0; padding-inline: 0; }
+.sdui-widget:has(.sdui-widget-body:empty) { display: none; }
+/* ---- Compact (card set "row"): dense rows, a quiet accent heading, hairlines between ---- */
+html[data-card-set="row"] .hub-head :is(h2, h3) { color: var(--accent-text); font-size: var(--text-md); text-transform: none; letter-spacing: 0; }
+html[data-card-set="row"] .sdui-list { gap: 0; }
+html[data-card-set="row"] .sdui-row { min-block-size: 3rem; padding-block: var(--space-xs); border-radius: var(--r-sm); border-block-end: 1px solid var(--border); }
+html[data-card-set="row"] .sdui-row-art.wide { inline-size: 4rem; block-size: 2.25rem; }
+html[data-card-set="row"] .sdui-row:is(:hover, :focus-visible) { background: var(--accent); color: var(--accent-fg); outline: none; }
+html[data-card-set="row"] .sdui-row:is(:hover, :focus-visible) :is(.muted, .sdui-row-go) { color: inherit; }
+/* ---- Marquee (carousel): the heading centred, large posters, names under the middle one ---- */
+.sdui-carousel .hub-head { justify-content: center; text-align: center; }
+.sdui-carousel .hub-head :is(h2, h3) { font-size: var(--role-title-size); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--fg-2); }
+.sdui-carousel .card { --card-w: clamp(10rem, 19vw, 16rem); }
+.sdui-carousel .sdui-item .card .poster { box-shadow: var(--elev-3-shadow); }
+
+/* With a scene behind the page, a billboard shades only its left for the words; the scene shows through the rest. */
+html[data-scene] .hero .shade { background: linear-gradient(90deg, rgb(var(--bg-rgb) / .5) 0%, rgb(var(--bg-rgb) / 0) 70%); }
+/* With a scene there is no page colour to fade to, so the picture itself fades out at the bottom and the scene shows through. */
+html[data-scene] .hero .bg { -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 55%, transparent 100%); } /* design-ok: a mask takes only alpha; black is fully shown, not a colour */
+/* An upright frame (a phone, a tablet) is sized by its height, so it doesn't grow taller than the card beside it. */
+.look-opts .layout-opt .layout-thumb:is(.lt-phone, .lt-tablet), .su-card .layout-thumb:is(.lt-phone, .lt-tablet) { inline-size: auto; width: auto; block-size: 9rem; height: 9rem; max-inline-size: 100%; margin-inline: auto; }
+.look-colours-big .layout-thumb:is(.lt-phone, .lt-tablet), .su-colours-big .layout-thumb:is(.lt-phone, .lt-tablet) { inline-size: auto; width: auto; block-size: min(22rem, 60vh); height: min(22rem, 60vh); }
+.look-colours-big .layout-thumb:is(.lt-desktop, .lt-tv), .su-colours-big .layout-thumb:is(.lt-desktop, .lt-tv) { inline-size: min(100%, 26rem); width: min(100%, 26rem); }

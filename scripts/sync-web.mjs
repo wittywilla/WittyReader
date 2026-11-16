@@ -33,6 +33,7 @@ export const WEB = [
   'sdui/cardStyles.ts', 'sdui/device.ts', 'sdui/extras/episodeView.ts', 'sdui/focus.ts', 'sdui/gridView.ts',
   'sdui/formsModel.ts', 'sdui/markdownModel.ts', 'sdui/model.ts', 'sdui/native.ts', 'sdui/patch.ts', 'sdui/playModel.ts', 'sdui/routes.ts', 'sdui/types.ts',
   'sdui/render/DockView.tsx', 'sdui/render/forms.tsx', 'sdui/render/components.tsx', 'sdui/render/context.tsx', 'sdui/render/icons.tsx', 'sdui/render/markdown.tsx', 'sdui/render/widgets.tsx',
+  'sdui/render/glyphs.ts', 'sdui/render/cardRoute.ts', 'sdui/render/titles.ts', 'sdui/render/useGameTitles.ts', 'ui/overlayFoot.ts', 'ui/userPrefs.ts',
   'ui/Button.tsx', 'ui/Choice.tsx', 'ui/Dock.tsx', 'ui/Field.tsx', 'ui/KeyLegend.tsx', 'ui/Menu.tsx', 'ui/Overlay.tsx', 'ui/Scene.tsx', 'ui/Tooltip.tsx',
   'ui/backEntry.ts', 'ui/qr.ts', 'components/QrCode.tsx', 'ui/themeMaker.ts', 'ui/inputKind.ts', 'ui/inputModel.ts', 'ui/menuPlace.ts', 'ui/spatial.ts', 'ui/useInput.ts',
   // the design system's stylesheets
