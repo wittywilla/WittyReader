@@ -34,4 +34,6 @@ WittyReader is built from three reader plugins, which also power the Books libra
 | WittyInk | Highlights, notes and handwriting for all of them | [wiki](https://github.com/wittywilla/WittyInk/wiki) |
 
 If you want your books and notes on every device (phone, tablet, computer, TV), WittyMediaServer
-keeps them on your own server and syncs your place and notes per account.
+keeps them on your own server and syncs your place and notes per account. The WittyReader desktop
+app can also read a server's books: add it in **Settings → Servers** and approve the device from
+one already signed in. Your own library stays on the device either way.
