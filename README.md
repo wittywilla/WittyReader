@@ -136,15 +136,6 @@ Bundled in the built app: pdf.js (`pdfjs-dist`, Apache-2.0, Mozilla Foundation) 
 
 WittyReader is part of the WittyMediaServer project: [server repository](https://github.com/wittywilla/WittyMediaServer), [wittymediaserver.com](https://wittymediaserver.com).
 
-## Legal
-
-WittyReader is an independent open-source project. It isn't associated with, sponsored by or
-endorsed by any publisher, rights holder, service or other media software project. No books come
-with it, and it doesn't check the ones you open: you're responsible for having the rights to them.
-Definitions come from a third-party service. Any third-party names here only describe what it works
-with, and belong to their owners. It's provided “as is”, with no warranty; see [LICENSE](LICENSE).
-Local law applies to how you use it. This isn't legal advice.
-
 <!-- module-kit -->
 ## Releasing
 
@@ -159,3 +150,12 @@ To release:
 
 Licensed under GPL-3.0-or-later: see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 <!-- /module-kit -->
+
+## Legal
+
+WittyReader is an independent open-source project. It isn't associated with, sponsored by or
+endorsed by any publisher, rights holder, service or other media software project. No books come
+with it, and it doesn't check the ones you open: you're responsible for having the rights to them.
+Definitions come from a third-party service. Any third-party names here only describe what it works
+with, and belong to their owners. It's provided “as is”, with no warranty; see [LICENSE](LICENSE).
+Local law applies to how you use it. This isn't legal advice.
