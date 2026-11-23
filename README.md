@@ -128,6 +128,8 @@ npm test
 - `scripts/test/installers-wine.sh` runs the Windows setup in a throwaway container with Wine.
 - `scripts/test/mac-uninstaller.sh` runs the Mac uninstaller's logic against a stand-in home folder. It needs no Mac, and says nothing about a real one.
 
+**Working on a Mac?** Start with WittyMediaServer's [MAC-START-HERE.md](https://github.com/wittywilla/WittyMediaServer/blob/v0.8.1-alpha/MAC-START-HERE.md): what to install, what to clone, and every Mac task in order: this repository's is item 7.7 (#36).
+
 ## Licence
 
 GNU GPL v3.0 (or later): see [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute it or build on it, please keep the NOTICE attribution. The Witty plugins it is built from, and the WittyMediaServer renderer, stylesheets and themes copied into `src/web/` and `public/themes/`, are under the GNU AGPL v3.0 (or later); the fonts in `public/fonts/` are under the SIL Open Font License 1.1. NOTICE has the details.
