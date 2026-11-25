@@ -13,12 +13,12 @@
     "test": "node --experimental-strip-types --test \"scripts/test/*.test.mjs\""
   },
   "dependencies": {
-    "@wittywilla/wittycomics": "github:wittywilla/WittyComics",
-    "@wittywilla/wittyebook": "github:wittywilla/WittyEbook",
+    "@wittywilla/wittycomics": "github:wittywilla/WittyComics#v0.4.3",
+    "@wittywilla/wittyebook": "github:wittywilla/WittyEbook#v0.4.3",
     "@wittywilla/wittyink": "github:wittywilla/WittyInk#v0.4.1",
-    "@wittywilla/wittypdf": "github:wittywilla/WittyPDF",
+    "@wittywilla/wittypdf": "github:wittywilla/WittyPDF#v0.4.5",
     "fflate": "0.8.3",
-    "pdfjs-dist": "6.4.299",
+    "pdfjs-dist": "6.5.438",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

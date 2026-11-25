@@ -47,3 +47,18 @@ test('only real books on a command line count', () => {
     fs.rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('every file the app requires is packed into it', () => {
+  const files = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).build.files
+  const packed = new Set(files.filter((f) => typeof f === 'string'))
+  const seen = new Set()
+  const walk = (name) => {
+    if (seen.has(name)) return
+    seen.add(name)
+    assert.ok(packed.has(name), `${name} is required but not in build.files`)
+    const src = fs.readFileSync(path.join(__dirname, '..', name), 'utf8')
+    for (const [, dep] of src.matchAll(/require\(['"]\.\/([^'"]+)['"]\)/g)) walk(dep)
+  }
+  walk('main.js')
+  walk('preload.js')
+})
